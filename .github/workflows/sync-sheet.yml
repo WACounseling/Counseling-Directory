@@ -1,0 +1,42 @@
+name: Sync Google Sheet (CSV)
+
+on:
+  schedule:
+    - cron: '0 11 * * *'   # daily at 11:00 UTC (~6:00 AM Eastern / 7:00 AM during EST)
+  workflow_dispatch: {}       # adds a manual "Run workflow" button in the Actions tab
+
+permissions:
+  contents: write            # needed so the workflow can commit the updated file
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest CSV from Google Sheets
+        run: |
+          mkdir -p "$(dirname data/directory.csv)"
+          curl -sL --fail "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmsEYR6mQ7ugtwUqNySniwiBuIztqEzMdjhiVN3bxY-Ms1QOZcYt52s0czzka4u-yA2PCYkH1Iz6U8/pub?gid=725997896&single=true&output=csv" -o data/directory.csv
+
+      - name: Sanity-check the response is CSV, not an error page
+        run: |
+          # An unpublished or wrong-permission link can return an HTML page with
+          # status 200, which --fail won't catch. Fail loudly instead of
+          # committing a web page as if it were data.
+          if head -c 200 data/directory.csv | grep -qi "<!DOCTYPE\|<html"; then
+            echo "::error::Got HTML instead of CSV. Re-check File > Share > Publish to web."
+            exit 1
+          fi
+          if [ ! -s data/directory.csv ]; then
+            echo "::error::Downloaded file is empty."
+            exit 1
+          fi
+
+      - name: Commit if the data changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/directory.csv
+          git diff --staged --quiet || git commit -m "Sync sheet data [automated]"
+          git push
