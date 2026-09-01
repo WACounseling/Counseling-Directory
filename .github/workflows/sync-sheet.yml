@@ -2,7 +2,11 @@ name: Sync Google Sheet & Rebuild Directory
 
 on:
   schedule:
-    - cron: '0 11 * * *'   # daily at 11:00 UTC (~6-7 AM Eastern, depending on DST)
+    - cron: '17 11 * * *'   # daily at 11:17 UTC (~6:17-7:17 AM Eastern, depending on DST)
+                             # (offset from :00 on purpose — GitHub Actions recommends
+                             # avoiding the top of the hour, its highest-load window,
+                             # since jobs scheduled there are the most likely to be
+                             # delayed or silently dropped)
   workflow_dispatch: {}       # adds a manual "Run workflow" button in the Actions tab
 
 permissions:
