@@ -83,7 +83,7 @@ def normalize_specialties(raw):
     if not raw:
         return []
     out = []
-    for token in [t.strip() for t in raw.split(",") if t.strip()]:
+    for token in [t.strip().strip('"') for t in raw.split(",") if t.strip().strip('"')]:
         out.extend(SPECIALTY_MAP.get(token, [token]))
     return out
 
