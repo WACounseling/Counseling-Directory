@@ -67,13 +67,23 @@
     border:1px solid rgba(255,255,255,.12);
     border-radius:50%;
   }
-  .header-inner{max-width:1080px; margin:0 auto; position:relative; z-index:1;}
+  .header-inner{
+    max-width:1080px;
+    margin:0 auto;
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:32px;
+  }
+  .header-text{flex:1; min-width:0;}
   .site-logo{
-    width:56px;
-    height:56px;
+    flex-shrink:0;
+    width:clamp(100px, 12vw, 148px);
+    height:clamp(100px, 12vw, 148px);
     display:block;
-    margin-bottom:20px;
-    border-radius:10px;
+    border-radius:14px;
   }
   .eyebrow{
     font-family:'Public Sans', sans-serif;
@@ -86,12 +96,6 @@
     display:flex;
     align-items:center;
     gap:10px;
-  }
-  .eyebrow::before{
-    content:"";
-    width:22px; height:1px;
-    background:var(--gold);
-    display:inline-block;
   }
   .site-header h1{
     color:var(--white);
@@ -141,10 +145,6 @@
   .collab p{margin:0 0 10px; font-size:15px; line-height:1.65; color:var(--ink);}
   .collab p:last-child{margin-bottom:0;}
   .collab strong{color:var(--maroon-dark);}
-  .collab .venn-labels{
-    display:flex; gap:14px; margin-top:8px; font-size:10.5px; color:var(--charcoal);
-    text-transform:uppercase; letter-spacing:.06em; font-weight:700;
-  }
 
   /* ---------- Disclaimer ---------- */
   .disclaimer{
@@ -422,6 +422,8 @@
     .filters{grid-template-columns:1fr;}
     .filters .filter-group.concern-group{grid-column:auto;}
     .site-header{padding:34px 18px 32px;}
+    .header-inner{flex-direction:column-reverse; align-items:flex-start; gap:20px;}
+    .site-logo{width:88px; height:88px;}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -434,10 +436,12 @@
 
 <header class="site-header">
   <div class="header-inner">
+    <div class="header-text">
+      <div class="eyebrow">Woodward Academy &middot; Counseling Department</div>
+      <h1>Family Counseling Referral Directory</h1>
+      <p class="lede">A starting point for finding outside therapists, psychologists, and specialists near you &mdash; searchable by concern, location, setting, and clinician preference.</p>
+    </div>
     <img src="assets/wa-logo-maroon.png" alt="Woodward Academy logo" class="site-logo">
-    <div class="eyebrow">Woodward Academy &middot; Counseling Department</div>
-    <h1>Family Counseling Referral Directory</h1>
-    <p class="lede">A starting point for finding outside therapists, psychologists, and specialists near you &mdash; searchable by concern, location, setting, and clinician preference.</p>
   </div>
 </header>
 
@@ -454,9 +458,6 @@
         <p>Students are safer and better supported when families, school counselors, and outside clinicians all work together. This directory is a resource for supporting that work.</p>
         <p><strong>We encourage every family to start by talking with your student's grade-level school counselor.</strong> They can help coordinate support at school, share what they're already seeing, and offer specific recommendations that go beyond this list.</p>
         <p>Use this resource, alongside your counselor's guidance, to find additional support outside of school that fits your family's needs.</p>
-        <div class="venn-labels">
-          <span>Family</span><span>&middot;</span><span>School Counselor</span><span>&middot;</span><span>Outside Clinician</span>
-        </div>
       </div>
     </div>
   </section>
