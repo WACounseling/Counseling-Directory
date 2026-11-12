@@ -23,7 +23,7 @@ import re
 import sys
 import urllib.parse
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -567,46 +567,13 @@ def coverage_report(records):
     return out
 
 
-# ---- "List last reviewed" date ------------------------------------------
-# Comes from a "Last Reviewed" column in the Public Ready tab: type the date
-# you last checked the list into that column (any one row; the latest date in
-# the column wins). If the column is missing or empty, the date already shown
-# on the live site is kept, so the footer never shows the build date instead.
-REVIEWED_COLUMN = "Last Reviewed"
-DATE_FORMATS = ["%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d", "%B %d, %Y", "%b %d, %Y",
-                "%B %d %Y", "%B %Y", "%b %Y", "%m/%Y"]
-
-
-def parse_review_date(text):
-    t = (text or "").strip()
-    if not t:
-        return None, None
-    for fmt in DATE_FORMATS:
-        try:
-            d = datetime.strptime(t, fmt)
-        except ValueError:
-            continue
-        shown = d.strftime("%B %Y") if "%d" not in fmt else f"{d.strftime('%B')} {d.day}, {d.year}"
-        return d, shown
-    return None, t  # unrecognized format: show exactly as typed
-
-
-def find_last_reviewed(rows):
-    best_d, best_shown, raw_only = None, None, None
-    for row in rows:
-        d, shown = parse_review_date(row.get(REVIEWED_COLUMN))
-        if d and (best_d is None or d > best_d):
-            best_d, best_shown = d, shown
-        elif shown and not d and raw_only is None:
-            raw_only = shown
-    return best_shown or raw_only, best_d
-
-
-def previous_reviewed():
-    if not OUTPUT_PATH.exists():
-        return None
-    m = re.search(r'id="last-(?:reviewed|updated)">([^<]+)<', OUTPUT_PATH.read_text(encoding="utf-8"))
-    return html.unescape(m.group(1)).strip() if m else None
+# ---- "Spreadsheet last checked" date -------------------------------------
+# The daily sync workflow records when it checked the spreadsheet in
+# data/last-checked.json, and the page reads that file. The date written into
+# the page here is only a fallback, used if that file can't be loaded.
+def fallback_checked_date():
+    d = date.today()
+    return f"{d.strftime('%B')} {d.day}, {d.year}"
 
 
 def main():
@@ -616,22 +583,8 @@ def main():
         rows = list(csv.DictReader(f))
     records = [r for r in (build_record(row) for row in rows) if r]
 
-    last_reviewed, reviewed_date = find_last_reviewed(rows)
-    reviewed_note = None
-    if not last_reviewed:
-        last_reviewed = previous_reviewed() or "Not yet recorded"
-        reviewed_note = (f"No date found in a \"{REVIEWED_COLUMN}\" column, so the site keeps "
-                         f"showing \"{last_reviewed}\". Add the column to the Public Ready tab to update it.")
-    elif reviewed_date and (datetime.now() - reviewed_date).days > 180:
-        reviewed_note = f"The list was last reviewed {last_reviewed}, more than 6 months ago."
-
-    records.sort(key=lambda r: r["name"].lower())
-
     prev = previous_count()
     report = quality_report(records, prev)
-    report = report.replace("\n\n", f"\n\n**List last reviewed (footer):** {last_reviewed}\n\n", 1)
-    if reviewed_note:
-        report += f"\n### Review date\n- {reviewed_note}\n"
     print(report)
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
@@ -666,7 +619,7 @@ def main():
     }, ensure_ascii=False)
     output = template.replace("__DIRECTORY_DATA_JSON__", data_json)
     output = output.replace("__DIRECTORY_META_JSON__", meta_json)
-    output = output.replace("__LAST_REVIEWED__", html.escape(last_reviewed))
+    output = output.replace("__LAST_CHECKED__", html.escape(fallback_checked_date()))
 
     OUTPUT_PATH.write_text(output, encoding="utf-8")
     print(f"Wrote {OUTPUT_PATH} with {len(records)} providers.")
