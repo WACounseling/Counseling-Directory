@@ -351,7 +351,10 @@
   .empty-state p{max-width:520px; margin:0 auto; line-height:1.6;}
 
   footer{background:var(--ink); color:rgba(255,255,255,.78); padding:28px 24px 34px; font-size:13px; line-height:1.7;}
-  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:0; max-width:1032px;}
+  footer .footer-cols{display:grid; grid-template-columns:1fr 1fr; gap:24px 48px; padding:0; max-width:1032px;}
+  .footer-head{font-size:14px; color:var(--white); margin-bottom:6px;}
+  footer p{margin:0 0 4px;}
+  .footer-dept{margin-top:10px !important; color:rgba(255,255,255,.6);}
   footer strong{color:var(--white);}
   footer a{color:var(--white);}
 
@@ -374,6 +377,7 @@
     .crisis{padding:10px 18px;}
     .crisis .crisis-more{margin-left:0;}
     .collab, .disclaimer{padding:20px 18px;}
+    footer .footer-cols{grid-template-columns:1fr;}
   }
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
@@ -537,11 +541,18 @@
 </div>
 
 <footer>
-  <div class="wrap">
-    <div>Woodward Academy Counseling Department<br>
-    In a mental health crisis, call or text <a href="tel:988"><strong>988</strong></a> (Suicide &amp; Crisis Lifeline), available 24/7.<br>
-    In an emergency, call <a href="tel:911"><strong>911</strong></a>.</div>
-    <div>Directory last updated: <strong id="last-updated">__LAST_UPDATED__</strong><br>Questions, or know of a listing that's out of date? Contact your grade-level school counselor.</div>
+  <div class="wrap footer-cols">
+    <div class="footer-col">
+      <h2 class="footer-head">Need help now?</h2>
+      <p>In a mental health crisis, call or text <a href="tel:988"><strong>988</strong></a> (Suicide &amp; Crisis Lifeline), available 24/7.</p>
+      <p>In an emergency, call <a href="tel:911"><strong>911</strong></a>.</p>
+    </div>
+    <div class="footer-col">
+      <h2 class="footer-head">About this directory</h2>
+      <p>List last reviewed for new and updated clinicians: <strong id="last-reviewed">__LAST_REVIEWED__</strong></p>
+      <p>Questions, or know of a listing that's out of date? Contact your grade-level school counselor.</p>
+      <p class="footer-dept">Woodward Academy Counseling Department</p>
+    </div>
   </div>
 </footer>
 
