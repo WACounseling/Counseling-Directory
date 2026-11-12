@@ -4,21 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Woodward Academy | Family Counseling Referral Directory</title>
+<meta name="description" content="Woodward Academy Counseling Department's directory of outside therapists, psychologists, and specialists for students and families. Search by concern, area, insurance, and setting.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Family Counseling Referral Directory | Woodward Academy">
+<meta property="og:description" content="Find outside therapists, psychologists, and specialists by concern, area, insurance, and setting.">
+<meta property="og:url" content="https://wacounseling.github.io/Counseling-Directory/">
+<meta property="og:image" content="https://wacounseling.github.io/Counseling-Directory/assets/wa-logo-maroon.png">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#9D2235">
+<link rel="icon" type="image/png" href="assets/wa-logo-maroon.png">
+<link rel="apple-touch-icon" href="assets/wa-logo-maroon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --maroon: #9D2235;
     --maroon-dark: #6E1826;
     --maroon-tint: #F4E3E6;
-    --gold: #B7B7B7;
-    --gold-dark: #4A4A4A;
-    --gold-tint: #EDEDED;
+    --grey: #B7B7B7;
+    --grey-dark: #4A4A4A;
+    --grey-tint: #EDEDED;
     --charcoal: #55565A;
     --ink: #1C1C1C;
-    --cream: #F5F5F5;
-    --cream-deep: #E7E7E7;
+    --page: #F5F5F5;
+    --page-deep: #E7E7E7;
     --white: #FFFFFF;
     --line: #D9D9D9;
     --radius: 14px;
@@ -28,80 +38,70 @@
   html{scroll-behavior:smooth;}
   body{
     margin:0;
-    font-family:'Public Sans', sans-serif;
+    font-family:'Public Sans', Arial, sans-serif;
     color:var(--ink);
-    background:var(--cream);
+    background:var(--page);
     -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3,h4{
-    font-family:'Fraunces', serif;
-    font-weight:600;
+    font-family:'Montserrat', 'Public Sans', Arial, sans-serif;
+    font-weight:700;
     margin:0;
     color:var(--ink);
   }
   a{color:inherit;}
   button{font-family:inherit;}
-  :focus-visible{outline:3px solid var(--gold-dark); outline-offset:2px;}
+  :focus-visible{outline:3px solid var(--grey-dark); outline-offset:2px;}
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+
+  /* ---------- Crisis strip ---------- */
+  .crisis{
+    background:var(--ink);
+    color:var(--white);
+    font-size:14px;
+    line-height:1.5;
+    padding:10px 24px;
+  }
+  .crisis-inner{max-width:1032px; margin:0 auto; display:flex; flex-wrap:wrap; gap:4px 22px; align-items:baseline;}
+  .crisis strong{font-weight:700;}
+  .crisis a{color:var(--white); font-weight:700; text-underline-offset:3px;}
+  .crisis .crisis-more{margin-left:auto; font-weight:600; color:#E9C9CF;}
 
   /* ---------- Header ---------- */
   .site-header{
     background:linear-gradient(180deg,var(--maroon) 0%, var(--maroon-dark) 100%);
     color:var(--white);
-    padding:44px 24px 40px;
-    position:relative;
-    overflow:hidden;
+    padding:34px 24px 56px;
   }
-  .site-header::after{
-    content:"";
-    position:absolute;
-    right:-60px; top:-60px;
-    width:260px; height:260px;
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:50%;
+  .header-inner{max-width:1032px; margin:0 auto;}
+  .title-row{display:flex; gap:32px; align-items:flex-start; justify-content:space-between;}
+  .title-text{flex:1; min-width:0;}
+  /* The logo file has transparent padding around the mark. These background
+     settings crop to the visible "WA" (297 x 205 px of the 447 px image) so
+     the mark itself, not the padding, matches the title block's height.
+     Its height is set by a small script to equal the title + subtitle. */
+  .header-logo{
+    flex:none;
+    height:110px;
+    aspect-ratio:297 / 205;
+    background:url('assets/wa-logo-white-transparent-v2.png') no-repeat 50% 50% / 150.51% auto;
   }
-  .site-header::before{
-    content:"";
-    position:absolute;
-    right:20px; bottom:-90px;
-    width:180px; height:180px;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:50%;
-  }
-  .header-inner{max-width:1080px; margin:0 auto; position:relative; z-index:1;}
-  .eyebrow{
-    font-family:'Public Sans', sans-serif;
-    font-weight:700;
-    font-size:12.5px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--gold);
-    margin-bottom:14px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .eyebrow::before{
-    content:"";
-    width:22px; height:1px;
-    background:var(--gold);
-    display:inline-block;
-  }
+  .header-dept{font-size:15px; font-weight:600; color:rgba(255,255,255,.82); margin-bottom:10px;}
   .site-header h1{
     color:var(--white);
-    font-size:clamp(28px, 4vw, 42px);
-    line-height:1.12;
-    max-width:820px;
+    font-size:clamp(26px, 3.6vw, 38px);
+    line-height:1.15;
     letter-spacing:-.01em;
   }
   .site-header p.lede{
-    margin-top:16px;
+    margin:12px 0 0;
     max-width:640px;
-    font-size:16.5px;
+    font-size:16px;
     line-height:1.6;
     color:rgba(255,255,255,.88);
   }
 
-  /* ---------- Collaboration banner ---------- */
+  /* ---------- Intro sections ---------- */
   .wrap{max-width:1080px; margin:0 auto; padding:0 24px;}
   .collab{
     background:var(--white);
@@ -109,60 +109,33 @@
     border-radius:var(--radius);
     box-shadow:var(--shadow);
     margin-top:-30px;
-    margin-bottom:36px;
-    padding:28px 28px 26px;
+    margin-bottom:24px;
+    padding:26px 28px 24px;
     position:relative;
-    z-index:2;
   }
-  .collab-top{
-    display:flex;
-    gap:20px;
-    align-items:flex-start;
-  }
-  .venn{flex:none; width:78px; height:60px; position:relative;}
-  .venn span{
-    position:absolute;
-    width:44px; height:44px;
-    border-radius:50%;
-    mix-blend-mode:multiply;
-    opacity:.85;
-  }
-  .venn .c1{background:var(--maroon-tint); top:0; left:0; border:1.5px solid var(--maroon);}
-  .venn .c2{background:var(--gold-tint); top:0; left:22px; border:1.5px solid var(--gold-dark);}
-  .venn .c3{background:#EAEAEA; top:16px; left:11px; border:1.5px solid var(--charcoal); opacity:.9;}
   .collab h2{font-size:19px; margin-bottom:8px; color:var(--maroon-dark);}
-  .collab p{margin:0 0 10px; font-size:15px; line-height:1.65; color:var(--ink);}
+  .collab p{margin:0 0 10px; font-size:15px; line-height:1.65; max-width:78ch;}
   .collab p:last-child{margin-bottom:0;}
   .collab strong{color:var(--maroon-dark);}
-  .collab .venn-labels{
-    display:flex; gap:14px; margin-top:8px; font-size:10.5px; color:var(--charcoal);
-    text-transform:uppercase; letter-spacing:.06em; font-weight:700;
-  }
 
-  /* ---------- Disclaimer ---------- */
   .disclaimer{
-    background:var(--gold-tint);
+    background:var(--grey-tint);
     border:1px solid var(--line);
     border-left:4px solid var(--maroon);
     border-radius:var(--radius);
     margin-bottom:36px;
-    padding:22px 26px 20px;
+    padding:20px 26px 18px;
   }
-  .disclaimer h2{font-size:15px; margin-bottom:10px; color:var(--maroon-dark); text-transform:uppercase; letter-spacing:.04em;}
-  .disclaimer p{margin:0 0 10px; font-size:13.5px; line-height:1.65; color:var(--charcoal);}
+  .disclaimer h2{font-size:15.5px; margin-bottom:8px; color:var(--maroon-dark);}
+  .disclaimer p{margin:0 0 10px; font-size:13.5px; line-height:1.65; color:var(--charcoal); max-width:90ch;}
   .disclaimer p:last-child{margin-bottom:0;}
-  .disclaimer strong{color:var(--ink);}
 
   /* ---------- Finder heading & search ---------- */
-  .finder-heading{margin-bottom:6px;}
   .finder-heading h2{font-size:24px;}
-  .finder-heading p{margin:6px 0 22px; color:var(--charcoal); font-size:15px; max-width:640px; line-height:1.55;}
+  .finder-heading p{margin:6px 0 20px; color:var(--charcoal); font-size:15px; max-width:640px; line-height:1.55;}
 
-  .search-bar-wrap{position:relative; margin-bottom:20px;}
-  .search-bar-wrap svg{
-    position:absolute; left:16px; top:50%; transform:translateY(-50%);
-    color:var(--charcoal); pointer-events:none;
-  }
+  .search-bar-wrap{position:relative; margin-bottom:16px;}
+  .search-bar-wrap svg{position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--charcoal); pointer-events:none;}
   #search-input{
     width:100%;
     padding:14px 16px 14px 44px;
@@ -170,53 +143,68 @@
     border:1px solid var(--line);
     background:var(--white);
     box-shadow:var(--shadow);
-    font-size:15.5px;
+    font-size:16px;
     font-family:inherit;
     color:var(--ink);
   }
-  #search-input::placeholder{color:#8B8B8B;}
-  #search-input:focus-visible{outline:3px solid var(--gold-dark); outline-offset:1px;}
+  #search-input::placeholder{color:#767676;}
 
   /* ---------- Filters ---------- */
+  .filters-toggle{
+    display:none;
+    width:100%;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 16px;
+    font-size:15px;
+    font-weight:700;
+    color:var(--maroon-dark);
+    cursor:pointer;
+    margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .filters-toggle svg{transition:transform .15s ease;}
+  .filters-toggle[aria-expanded="true"] svg{transform:rotate(180deg);}
+
   .filters{
     background:var(--white);
     border:1px solid var(--line);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
     padding:24px;
-    display:grid;
-    grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;
-    gap:20px;
-    margin-bottom:24px;
+    margin-bottom:18px;
   }
-  .filter-group.concern-group{grid-column:span 2;}
-  .filter-group label.group-label{
+  .filters-chips{display:grid; grid-template-columns:1.6fr 1fr; gap:22px; margin-bottom:22px;}
+  .filters-selects{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px 20px;}
+  fieldset{border:none; margin:0; padding:0; min-width:0;}
+  .group-label, legend.group-label{
     display:block;
-    font-size:12px;
+    font-size:13.5px;
     font-weight:700;
-    text-transform:uppercase;
-    letter-spacing:.06em;
     color:var(--maroon-dark);
-    margin-bottom:10px;
+    margin-bottom:8px;
+    padding:0;
   }
-  .concern-box{
+  .label-row{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; min-height:24px;}
+  .label-row .group-label{margin-bottom:0;}
+  .hint{font-size:12px; color:var(--charcoal); margin:8px 0 0; line-height:1.5;}
+
+  .chip-box{
     border:1px solid var(--line);
     border-radius:10px;
-    max-height:168px;
+    max-height:176px;
     overflow-y:auto;
-    padding:10px;
-    background:var(--cream);
+    padding:8px 10px;
+    background:var(--page);
   }
-  .concern-box::-webkit-scrollbar{width:8px;}
-  .concern-box::-webkit-scrollbar-thumb{background:var(--gold-dark); border-radius:8px;}
-  .concern-chip{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    margin:3px 4px 3px 0;
-  }
-  .concern-chip input{position:absolute; opacity:0; width:1px; height:1px;}
-  .concern-chip label{
+  .chip-box::-webkit-scrollbar{width:8px;}
+  .chip-box::-webkit-scrollbar-thumb{background:var(--grey-dark); border-radius:8px;}
+  .chip{display:inline-flex; margin:3px 4px 3px 0;}
+  .chip input{position:absolute; opacity:0; width:1px; height:1px;}
+  .chip label{
     font-size:13px;
     padding:6px 12px;
     border-radius:20px;
@@ -224,19 +212,20 @@
     border:1px solid var(--line);
     cursor:pointer;
     color:var(--ink);
-    transition:.15s ease;
+    transition:background .15s ease, color .15s ease;
     user-select:none;
   }
-  .concern-chip input:checked + label{
-    background:var(--maroon);
-    border-color:var(--maroon);
-    color:var(--white);
-  }
-  .concern-chip input:focus-visible + label{outline:3px solid var(--gold-dark); outline-offset:2px;}
+  .chip input:checked + label{background:var(--maroon); border-color:var(--maroon); color:var(--white);}
+  .chip input:focus-visible + label{outline:3px solid var(--grey-dark); outline-offset:2px;}
+
+  .mini-toggle{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; font-size:12px;}
+  .mini-toggle button{border:none; background:var(--white); padding:4px 10px; cursor:pointer; color:var(--ink); font-size:12px;}
+  .mini-toggle button + button{border-left:1px solid var(--line);}
+  .mini-toggle button[aria-pressed="true"]{background:var(--ink); color:var(--white);}
 
   select{
     width:100%;
-    padding:11px 12px;
+    padding:11px 34px 11px 12px;
     border-radius:10px;
     border:1px solid var(--line);
     background:var(--white) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%235F5E5E" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right 12px center;
@@ -246,51 +235,38 @@
     color:var(--ink);
     font-family:inherit;
   }
-  .segmented{
-    display:flex;
-    border:1px solid var(--line);
-    border-radius:10px;
-    overflow:hidden;
-    background:var(--white);
-  }
+  .segmented{display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--white);}
   .segmented button{
-    flex:1;
-    border:none;
-    background:var(--white);
-    padding:10.5px 6px;
-    font-size:13.5px;
-    color:var(--ink);
-    cursor:pointer;
-    border-right:1px solid var(--line);
-    transition:.15s ease;
+    flex:1; border:none; background:var(--white); padding:10.5px 6px; font-size:13.5px;
+    color:var(--ink); cursor:pointer; border-right:1px solid var(--line); transition:background .15s ease;
   }
   .segmented button:last-child{border-right:none;}
-  .segmented button.active{background:var(--maroon); color:var(--white);}
+  .segmented button[aria-pressed="true"]{background:var(--maroon); color:var(--white);}
 
-  .filters-footer{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:28px;
-    flex-wrap:wrap;
-    gap:10px;
+  /* ---------- Results toolbar ---------- */
+  .results-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px 16px; margin-bottom:22px;
   }
   .result-count{font-size:14.5px; color:var(--charcoal);}
   .result-count strong{color:var(--maroon-dark); font-size:15px;}
+  .toolbar{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .tool-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--white); border:1px solid var(--line); border-radius:9px;
+    padding:7px 12px; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
+  .tool-btn:hover{border-color:var(--grey-dark);}
+  .tool-btn[aria-pressed="true"]{background:var(--maroon); border-color:var(--maroon); color:var(--white);}
   .reset-link{
     background:none; border:none; color:var(--maroon-dark);
-    font-size:13.5px; font-weight:700; cursor:pointer; text-decoration:underline;
-    padding:4px 0;
+    font-size:13.5px; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px;
+    padding:4px 2px;
   }
-  .gender-note{font-size:12px; color:var(--charcoal); margin-top:8px; line-height:1.5;}
+  .toast{font-size:13px; color:var(--maroon-dark); font-weight:600; min-height:1em;}
 
   /* ---------- Results ---------- */
-  .results{
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:18px;
-    padding-bottom:60px;
-  }
+  .results{display:grid; grid-template-columns:repeat(2, 1fr); gap:18px; padding-bottom:60px;}
   .card{
     background:var(--white);
     border:1px solid var(--line);
@@ -300,357 +276,512 @@
     display:flex;
     flex-direction:column;
   }
-  .card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;}
-  .card h3{font-size:18.5px; line-height:1.3; color:var(--maroon-dark);}
-  .badge-row{display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:none;}
-  .status-pill{
-    font-size:11px;
-    font-weight:700;
-    padding:4px 10px;
-    border-radius:20px;
-    white-space:nowrap;
-    text-transform:uppercase;
-    letter-spacing:.03em;
-  }
-  .status-accept{background:var(--ink); color:var(--white);}
-  .status-limited{background:var(--gold-tint); color:var(--gold-dark); border:1px solid var(--line);}
-  .status-wait, .status-not{background:var(--maroon-tint); color:var(--maroon-dark);}
-  .status-unknown{background:#EFEFEF; color:var(--charcoal);}
+  .card.saved{border-color:var(--maroon); box-shadow:0 0 0 1px var(--maroon), var(--shadow);}
+  .card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px;}
+  .card h3{font-size:17.5px; line-height:1.3; color:var(--maroon-dark);}
   .type-pill{
-    font-size:10.5px;
-    font-weight:700;
-    padding:3px 9px;
-    border-radius:20px;
-    white-space:nowrap;
-    text-transform:uppercase;
-    letter-spacing:.03em;
-    background:var(--maroon-tint);
-    color:var(--maroon-dark);
-    border:1px solid var(--maroon-tint);
+    display:inline-block; margin-top:6px;
+    font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:20px;
+    background:var(--maroon-tint); color:var(--maroon-dark);
   }
-
-  .card .meta-line{font-size:13px; color:var(--charcoal); margin-bottom:2px; display:flex; gap:6px; align-items:baseline;}
-  .card .meta-line b{color:var(--ink); font-weight:600;}
-
-  .tags{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 10px;}
-  .tag{
-    font-size:11.5px;
-    padding:4px 10px;
-    border-radius:20px;
-    background:var(--gold-tint);
-    border:1px solid var(--gold);
-    color:var(--gold-dark);
-    font-weight:600;
+  .save-btn{
+    flex:none; display:inline-flex; align-items:center; gap:5px;
+    background:var(--white); border:1px solid var(--line); border-radius:20px;
+    padding:5px 11px; font-size:12px; font-weight:700; color:var(--charcoal); cursor:pointer;
   }
-  .tag.more{background:var(--cream-deep); border-color:var(--line); color:var(--charcoal);}
+  .save-btn svg{fill:none;}
+  .save-btn[aria-pressed="true"]{border-color:var(--maroon); color:var(--maroon-dark); background:var(--maroon-tint);}
+  .save-btn[aria-pressed="true"] svg{fill:var(--maroon);}
 
-  .setting-row{display:flex; gap:14px; margin-bottom:12px;}
+  .meta-line{font-size:13px; color:var(--charcoal); margin-bottom:4px; display:flex; gap:7px; align-items:flex-start; line-height:1.45;}
+  .meta-line svg{flex:none; margin-top:2px;}
+
+  .setting-row{display:flex; gap:14px; margin:8px 0 2px;}
   .setting-item{display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--charcoal);}
-  .setting-item svg{flex:none;}
   .setting-item.off{opacity:.35;}
+  .setting-ask{font-size:12.5px; color:var(--charcoal); font-style:italic;}
 
-  .card .notes{
-    font-size:13px;
-    color:var(--ink);
-    line-height:1.55;
-    background:var(--cream);
-    border-left:3px solid var(--gold);
-    padding:9px 12px;
-    border-radius:6px;
-    margin-bottom:14px;
+  .tags{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px;}
+  .tag{
+    font-size:11.5px; padding:4px 10px; border-radius:20px;
+    background:var(--grey-tint); border:1px solid var(--grey); color:var(--grey-dark); font-weight:600;
   }
+  .tag.care{background:var(--white); border-color:var(--maroon); color:var(--maroon-dark);}
+  button.tag.more{background:var(--page-deep); border-color:var(--line); color:var(--charcoal); cursor:pointer; font-family:inherit;}
+
+  .facts{margin:10px 0 14px; display:grid; gap:6px;}
+  .fact{font-size:13px; line-height:1.5; color:var(--ink);}
+  .fact b{font-weight:700; color:var(--maroon-dark);}
+  .fact .unknown{color:var(--charcoal); font-style:italic;}
 
   .card-footer{margin-top:auto; padding-top:12px; border-top:1px dashed var(--line); display:flex; flex-direction:column; gap:8px;}
   .contact-row{display:flex; flex-wrap:wrap; gap:14px; font-size:13.5px;}
   .contact-row a{text-decoration:none; color:var(--maroon-dark); font-weight:600; display:flex; align-items:center; gap:5px;}
   .contact-row a:hover{text-decoration:underline;}
   .visit-btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    background:var(--maroon);
-    color:var(--white) !important;
-    font-weight:700;
-    font-size:13.5px;
-    padding:10px 16px;
-    border-radius:9px;
-    text-decoration:none !important;
-    margin-top:4px;
-    transition:.15s ease;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--maroon); color:var(--white); font-weight:700; font-size:13.5px;
+    padding:10px 16px; border-radius:9px; text-decoration:none; margin-top:4px; transition:background .15s ease;
   }
   .visit-btn:hover{background:var(--maroon-dark);}
-  .no-site{
-    font-size:12.5px; color:var(--charcoal); font-style:italic; margin-top:4px;
-  }
+  .no-site{font-size:12.5px; color:var(--charcoal); font-style:italic; margin-top:4px;}
 
   .empty-state{
-    grid-column:1/-1;
-    text-align:center;
-    padding:60px 20px;
-    background:var(--white);
-    border:1px dashed var(--line);
-    border-radius:var(--radius);
-    color:var(--charcoal);
+    grid-column:1/-1; text-align:center; padding:56px 20px;
+    background:var(--white); border:1px dashed var(--line); border-radius:var(--radius); color:var(--charcoal);
   }
   .empty-state h3{color:var(--maroon-dark); margin-bottom:8px; font-size:19px;}
+  .empty-state p{max-width:520px; margin:0 auto; line-height:1.6;}
 
-  footer{
-    background:var(--ink);
-    color:rgba(255,255,255,.75);
-    padding:28px 24px 34px;
-    font-size:13px;
-    line-height:1.7;
-  }
-  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap;}
-  footer strong{color:var(--gold);}
+  footer{background:var(--ink); color:rgba(255,255,255,.78); padding:28px 24px 34px; font-size:13px; line-height:1.7;}
+  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:0;}
+  footer strong{color:var(--white);}
+  footer a{color:var(--white);}
+
+  .print-only{display:none;}
 
   @media (max-width: 880px){
-    .filters{grid-template-columns:1fr 1fr; }
-    .filters .filter-group.concern-group{grid-column:1/-1;}
+    .filters-chips{grid-template-columns:1fr;}
+    .filters-selects{grid-template-columns:1fr 1fr;}
     .results{grid-template-columns:1fr;}
-    .collab-top{flex-direction:column;}
+    .filters-toggle{display:flex;}
+    .filters[data-collapsed="true"]{display:none;}
   }
   @media (max-width: 560px){
-    .filters{grid-template-columns:1fr;}
-    .filters .filter-group.concern-group{grid-column:auto;}
-    .site-header{padding:34px 18px 32px;}
+    .filters-selects{grid-template-columns:1fr;}
+    .site-header{padding:26px 18px 50px;}
+    .title-row{display:grid; grid-template-columns:1fr auto; gap:0 16px; align-items:start;}
+    .title-text{display:contents;}
+    .header-logo{height:58px; grid-column:2; grid-row:1;}
+    .site-header .lede{grid-column:1 / -1;}
+    .crisis{padding:10px 18px;}
+    .crisis .crisis-more{margin-left:0;}
+    .collab, .disclaimer{padding:20px 18px;}
   }
-
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
     *{transition:none !important;}
+  }
+  @media print{
+    body{background:var(--white);}
+    .site-header, .collab, .disclaimer, .finder-heading, .search-bar-wrap,
+    .filters, .filters-toggle, .toolbar, .reset-link, .save-btn, button.tag.more,
+    .crisis .crisis-more, footer, .toast{display:none !important;}
+    .print-only{display:block;}
+    .crisis{background:none; color:var(--ink); border-bottom:1px solid var(--ink); padding:0 0 8px;}
+    .crisis a{color:var(--ink);}
+    .wrap{padding:0;}
+    .results{grid-template-columns:1fr 1fr; gap:10px;}
+    .card{box-shadow:none; break-inside:avoid; padding:12px; border-color:#999;}
+    .card.saved{box-shadow:none;}
+    .visit-btn{background:none !important; color:var(--ink) !important; padding:0; justify-content:flex-start;}
+    .visit-btn::after{content:" " attr(href); font-weight:400; font-size:11px;}
   }
 </style>
 </head>
 <body>
 
+<div class="crisis" role="region" aria-label="Crisis resources">
+  <div class="crisis-inner">
+    <span><strong>In an emergency, call 911.</strong></span>
+    <span>Call or text <a href="tel:988">988</a> for the Suicide &amp; Crisis Lifeline.</span>
+    <span>Georgia Crisis &amp; Access Line: <a href="tel:18007154225">1-800-715-4225</a></span>
+    <a class="crisis-more" href="#care=Free%20Crisis%20or%20Support%20Line">Free support lines in this directory</a>
+  </div>
+</div>
+
 <header class="site-header">
   <div class="header-inner">
-    <div class="eyebrow">Woodward Academy &middot; Counseling Department</div>
-    <h1>Family Counseling Referral Directory</h1>
-    <p class="lede">A starting point for finding outside therapists, psychologists, and specialists near you &mdash; searchable by concern, location, setting, and clinician preference.</p>
+    <div class="header-dept">Woodward Academy Counseling Department</div>
+    <div class="title-row">
+      <div class="title-text" id="title-text">
+        <h1>Family Counseling Referral Directory</h1>
+        <p class="lede">A starting point for finding outside therapists, psychologists, and specialists near you. Search by concern, area, insurance, setting, and clinician preference.</p>
+      </div>
+      <div class="header-logo" id="header-logo" role="img" aria-label="Woodward Academy"></div>
+    </div>
   </div>
 </header>
 
 <div class="wrap">
   <section class="collab" aria-labelledby="collab-heading">
-    <div class="collab-top">
-      <div class="venn" aria-hidden="true">
-        <span class="c1"></span>
-        <span class="c2"></span>
-        <span class="c3"></span>
-      </div>
-      <div>
-        <h2 id="collab-heading">Supporting a student's mental health is a group project</h2>
-        <p>Students are safer and better supported when families, school counselors, and outside clinicians all work together. This directory is one part of that team &mdash; not a replacement for it.</p>
-        <p><strong>We encourage every family to start by talking with your student's grade-level school counselor.</strong> They can help coordinate support at school, share what they're already seeing, and offer specific recommendations that go beyond this list.</p>
-        <p>Use this resource, alongside your counselor's guidance, to find additional support outside of school that fits your family's needs.</p>
-        <div class="venn-labels">
-          <span>Family</span><span>&middot;</span><span>School Counselor</span><span>&middot;</span><span>Outside Clinician</span>
-        </div>
-      </div>
-    </div>
+    <h2 id="collab-heading">Supporting a student's mental health is a group project</h2>
+    <p>Students are safer and better supported when families, school counselors, and outside clinicians all work together. This directory is one part of that team, not a replacement for it.</p>
+    <p><strong>We encourage every family to start by talking with your student's grade-level school counselor.</strong> They can help coordinate support at school, share what they're already seeing, and offer specific recommendations that go beyond this list.</p>
+    <p>Use this resource, alongside your counselor's guidance, to find additional support outside of school that fits your family's needs.</p>
   </section>
 
   <section class="disclaimer" aria-labelledby="disclaimer-heading">
-    <h2 id="disclaimer-heading">About This List</h2>
-    <p>Woodward Academy and its counseling staff are not affiliated with, and do not formally endorse, employ, supervise, or take responsibility for, the clinicians or practices listed below. This directory is provided solely as a convenience to help students and families identify potential resources &mdash; it is not a specific recommendation or referral for any individual student.</p>
-    <p>Listings have been compiled from providers that current or former Woodward families have worked with, practices that have been suggested to our department, or clinicians our counselors have consulted or collaborated with in supporting students. Inclusion on this list does not constitute a guarantee of quality of care, and past positive experiences with a provider do not guarantee similar results for another student or family. Not every provider is the right fit for every family, and families are encouraged to use their own judgment &mdash; including consulting with a pediatrician, licensed clinician, or insurance carrier &mdash; when selecting care.</p>
-    <p>This list is not comprehensive and may not reflect current availability, credentials, or practice status. For a broader and more up-to-date range of options, families may also wish to consult their pediatrician, their insurance carrier's provider network, or directories such as Psychology Today (psychologytoday.com).</p>
+    <h2 id="disclaimer-heading">About this list</h2>
+    <p>Woodward Academy and its counseling staff are not affiliated with, and do not formally endorse, employ, supervise, or take responsibility for, the clinicians or practices listed below. This directory is provided solely as a convenience and is not a specific recommendation or referral for any individual student.</p>
+    <p>Listings have been compiled from providers that current or former Woodward families have worked with, practices that have been suggested to our department, or clinicians our counselors have consulted or collaborated with in supporting students. Inclusion on this list does not constitute a guarantee of quality of care, and past positive experiences with a provider do not guarantee similar results for another student or family. Not every provider is the right fit for every family, and families are encouraged to use their own judgment, including consulting with a pediatrician, licensed clinician, or insurance carrier, when selecting care.</p>
+      <p>This list is not comprehensive and may not reflect current availability, credentials, or practice status. For a broader and more up-to-date range of options, families may also wish to consult their pediatrician, their insurance carrier's provider network, or directories such as Psychology Today (psychologytoday.com).</p>
   </section>
 
   <div class="finder-heading">
-    <h2>Find a Clinician</h2>
-    <p>Search by name, city, or keyword, or select any combination of filters below. This list is provided for convenience and does not constitute an endorsement of any specific provider &mdash; please verify credentials, availability, and insurance directly with each practice.</p>
+    <h2>Find a clinician</h2>
+    <p>Search by name, city, insurance, or keyword, or combine any of the filters below. Please verify credentials, availability, and insurance directly with each practice.</p>
   </div>
 
   <div class="search-bar-wrap">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search-input" placeholder="Search by name, city, insurance, or keyword&hellip;" autocomplete="off">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <label for="search-input" class="sr-only">Search the directory</label>
+    <input type="search" id="search-input" placeholder="Try &quot;anxiety teens&quot; or &quot;Cigna Decatur&quot;" autocomplete="off">
   </div>
 
-  <div class="filters">
-    <div class="filter-group concern-group">
-      <label class="group-label" for="concern-box">Areas of concern</label>
-      <div class="concern-box" id="concern-box" role="group" aria-label="Filter by area of concern"></div>
+  <button type="button" class="filters-toggle" id="filters-toggle" aria-expanded="false" aria-controls="filters">
+    <span id="filters-toggle-label">Filters</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+
+  <div class="filters" id="filters" data-collapsed="true">
+    <div class="filters-chips">
+      <fieldset>
+        <div class="label-row">
+          <legend class="group-label">What's going on</legend>
+          <div class="mini-toggle" role="group" aria-label="How to combine concerns">
+            <button type="button" data-match="all" aria-pressed="true">Match all</button>
+            <button type="button" data-match="any" aria-pressed="false">Match any</button>
+          </div>
+        </div>
+        <div class="chip-box" id="concern-box"></div>
+      </fieldset>
+      <fieldset>
+        <div class="label-row"><legend class="group-label">Type of care</legend></div>
+        <div class="chip-box" id="care-box"></div>
+        <p class="hint">Shows providers offering any of the types you pick.</p>
+      </fieldset>
     </div>
-    <div class="filter-group">
-      <label class="group-label" for="area-select">General area</label>
-      <select id="area-select"><option value="">Any area</option></select>
-    </div>
-    <div class="filter-group">
-      <label class="group-label" for="ages-select">Ages served</label>
-      <select id="ages-select">
-        <option value="">Any age</option>
-        <option value="Children">Children</option>
-        <option value="Teens">Teens</option>
-        <option value="Adults">Adults</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label class="group-label">Setting</label>
-      <div class="segmented" id="setting-segmented" role="group" aria-label="Filter by setting">
-        <button type="button" data-value="either" class="active">Either</button>
-        <button type="button" data-value="inperson">In Person</button>
-        <button type="button" data-value="virtual">Virtual</button>
+    <div class="filters-selects">
+      <div>
+        <label class="group-label" for="type-select">Provider type</label>
+        <select id="type-select"><option value="">Any type</option></select>
+      </div>
+      <div>
+        <label class="group-label" for="ins-select">Insurance or payment</label>
+        <select id="ins-select"><option value="">Any</option></select>
+        <p class="hint" id="ins-hint" hidden>Practices that haven't shared their insurance list don't appear here. Calling to ask is always worth it.</p>
+      </div>
+      <div>
+        <label class="group-label" for="area-select">General area</label>
+        <select id="area-select"><option value="">Any area</option></select>
+      </div>
+      <div>
+        <label class="group-label" for="ages-select">Ages served</label>
+        <select id="ages-select">
+          <option value="">Any age</option>
+          <option value="Children">Children</option>
+          <option value="Teens">Teens</option>
+          <option value="Adults">Adults</option>
+        </select>
+      </div>
+      <fieldset>
+        <legend class="group-label">Setting</legend>
+        <div class="segmented" id="setting-segmented">
+          <button type="button" data-value="either" aria-pressed="true">Either</button>
+          <button type="button" data-value="inperson" aria-pressed="false">In person</button>
+          <button type="button" data-value="virtual" aria-pressed="false">Virtual</button>
+        </div>
+      </fieldset>
+      <div>
+        <label class="group-label" for="gender-select">Clinician gender</label>
+        <select id="gender-select">
+          <option value="">No preference</option>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+          <option value="Non-Binary">Non-binary</option>
+        </select>
+        <p class="hint">Group practices appear under every gender they list. Ask the practice to request a specific clinician.</p>
       </div>
     </div>
-    <div class="filter-group">
-      <label class="group-label" for="gender-select">Clinician gender</label>
-      <select id="gender-select">
-        <option value="">No preference</option>
-        <option value="Female">Female</option>
-        <option value="Male">Male</option>
-        <option value="Non-Binary">Non-Binary</option>
-      </select>
-      <p class="gender-note">Practices with multiple clinicians (e.g. "Female, Male") appear under every gender they list. Please ask the practice directly to request a specific clinician.</p>
+  </div>
+
+  <div class="results-bar">
+    <div class="result-count" aria-live="polite" aria-atomic="true"><strong id="result-count">0</strong> <span id="result-noun">providers</span> <span id="result-scope">match your filters</span></div>
+    <div class="toolbar">
+      <span class="toast" id="toast" aria-live="polite"></span>
+      <button type="button" class="tool-btn" id="mylist-btn" aria-pressed="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true"><path d="M12 17.3 18.2 21l-1.6-7L22 9.2l-7.2-.6L12 2 9.2 8.6 2 9.2 7.4 14l-1.6 7z"/></svg><span>My list (<span id="mylist-count">0</span>)</span>
+      </button>
+      <button type="button" class="tool-btn" id="copy-btn">Copy link to these results</button>
+      <button type="button" class="tool-btn" id="print-btn">Print</button>
+      <button type="button" class="reset-link" id="reset-btn">Reset all</button>
     </div>
   </div>
 
-  <div class="filters-footer">
-    <div class="result-count"><strong id="result-count">0</strong> <span id="result-noun">providers</span> match your filters</div>
-    <button class="reset-link" id="reset-btn" type="button">Reset all filters</button>
-  </div>
-
+  <p class="print-only" id="print-title"></p>
   <div class="results" id="results"></div>
 </div>
 
 <footer>
   <div class="wrap">
-    <div>Woodward Academy Counseling Department &middot; Family Counseling Referral Directory<br>
+    <div>Woodward Academy Counseling Department<br>
     In a mental health crisis, call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline), available 24/7.</div>
-    <div>Directory last updated: <strong id="last-updated">August 2026</strong><br>Questions or updates? Contact your grade-level school counselor.</div>
+    <div>Directory last updated: <strong id="last-updated">__LAST_UPDATED__</strong><br>Questions, or know of a listing that's out of date? Contact your grade-level school counselor.</div>
   </div>
 </footer>
 
 <script id="directory-data" type="application/json">
 __DIRECTORY_DATA_JSON__
 </script>
+<script id="directory-meta" type="application/json">
+__DIRECTORY_META_JSON__
+</script>
 
 <script>
 (function(){
   const DATA = JSON.parse(document.getElementById('directory-data').textContent);
+  const META = JSON.parse(document.getElementById('directory-meta').textContent);
+  const SAVE_KEY = 'wa-directory-saved';
 
-  // ---- Build concern list ----
-  const tagSet = new Set();
-  DATA.forEach(r => (r.specialties||[]).forEach(t => tagSet.add(t)));
-  const tags = Array.from(tagSet).sort((a,b)=>a.localeCompare(b));
+  // ---------- helpers ----------
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : null;
+  const $ = id => document.getElementById(id);
+  const uniqSorted = arr => Array.from(new Set(arr)).sort((a,b)=>a.localeCompare(b));
 
-  const concernBox = document.getElementById('concern-box');
-  tags.forEach((tag, i) => {
-    const id = 'concern-' + i;
-    const wrap = document.createElement('span');
-    wrap.className = 'concern-chip';
-    wrap.innerHTML = `<input type="checkbox" id="${id}" value="${tag}"><label for="${id}">${tag}</label>`;
-    concernBox.appendChild(wrap);
-  });
+  function loadSaved(){
+    try { return new Set(JSON.parse(localStorage.getItem(SAVE_KEY) || '[]')); }
+    catch(e){ return new Set(); }
+  }
+  function storeSaved(){
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(Array.from(saved))); } catch(e){}
+  }
+  let saved = loadSaved();
 
-  // ---- Build area list (from all cities a practice lists, not just the primary one) ----
-  const areaSet = new Set();
-  DATA.forEach(r => (r.cities && r.cities.length ? r.cities : (r.city ? [r.city] : [])).forEach(c => areaSet.add(c)));
-  const areas = Array.from(areaSet).sort((a,b)=>a.localeCompare(b));
-  const areaSelect = document.getElementById('area-select');
-  areas.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a; opt.textContent = a;
-    areaSelect.appendChild(opt);
-  });
-
-  // ---- State ----
-  let state = { concerns: [], area: '', ages: '', setting: 'either', gender: '', query: '' };
-
-  const settingBtns = document.querySelectorAll('#setting-segmented button');
-  settingBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      settingBtns.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      state.setting = btn.dataset.value;
-      render();
+  // ---------- build filter controls ----------
+  function buildChips(boxId, tags, prefix){
+    const box = $(boxId);
+    tags.forEach((tag, i) => {
+      const id = prefix + '-' + i;
+      const wrap = document.createElement('span');
+      wrap.className = 'chip';
+      wrap.innerHTML = `<input type="checkbox" id="${id}" value="${esc(tag)}"><label for="${id}">${esc(tag)}</label>`;
+      box.appendChild(wrap);
     });
+    return box;
+  }
+  const concernBox = buildChips('concern-box', uniqSorted(DATA.flatMap(r => r.concerns || [])), 'concern');
+  const careBox = buildChips('care-box', uniqSorted(DATA.flatMap(r => r.care || [])), 'care');
+
+  const typeSelect = $('type-select');
+  uniqSorted(DATA.map(r => r.providerType).filter(Boolean)).forEach(t => typeSelect.add(new Option(t, t)));
+
+  const insSelect = $('ins-select');
+  const insPresent = new Set(DATA.flatMap(r => r.insuranceCats || []));
+  META.insurance.filter(l => insPresent.has(l)).forEach(l => insSelect.add(new Option(l, l)));
+
+  const areaSelect = $('area-select');
+  const regionCities = {};
+  Object.entries(META.cityRegion).forEach(([c, reg]) => (regionCities[reg] = regionCities[reg] || []).push(c));
+  META.regions.forEach(reg => {
+    if (!regionCities[reg]) return;
+    const g = document.createElement('optgroup');
+    g.label = reg;
+    const cities = regionCities[reg].slice().sort((a,b)=>a.localeCompare(b));
+    g.appendChild(new Option('All of ' + reg, 'r:' + reg));
+    cities.forEach(c => g.appendChild(new Option(c, 'c:' + c)));
+    areaSelect.appendChild(g);
   });
 
-  concernBox.addEventListener('change', (e) => {
-    if(e.target.type !== 'checkbox') return;
-    state.concerns = Array.from(concernBox.querySelectorAll('input:checked')).map(i=>i.value);
+  // ---------- state ----------
+  const blank = () => ({ q:'', concerns:[], match:'all', care:[], type:'', ins:'', area:'', ages:'', setting:'either', gender:'', mine:false });
+  let state = blank();
+
+  function stateToHash(){
+    const p = new URLSearchParams();
+    if (state.q) p.set('q', state.q);
+    if (state.concerns.length) p.set('concerns', state.concerns.join('|'));
+    if (state.match === 'any') p.set('match', 'any');
+    if (state.care.length) p.set('care', state.care.join('|'));
+    ['type','ins','area','ages','gender'].forEach(k => { if (state[k]) p.set(k, state[k]); });
+    if (state.setting !== 'either') p.set('setting', state.setting);
+    const s = p.toString().replace(/\+/g, '%20');
+    return s ? '#' + s : '';
+  }
+  function hashToState(){
+    const s = blank();
+    const p = new URLSearchParams(location.hash.replace(/^#/, ''));
+    s.q = p.get('q') || '';
+    s.concerns = (p.get('concerns') || '').split('|').filter(Boolean);
+    s.match = p.get('match') === 'any' ? 'any' : 'all';
+    s.care = (p.get('care') || '').split('|').filter(Boolean);
+    ['type','ins','area','ages','gender'].forEach(k => s[k] = p.get(k) || '');
+    s.setting = ['inperson','virtual'].includes(p.get('setting')) ? p.get('setting') : 'either';
+    s.mine = state.mine;
+    return s;
+  }
+  function syncControls(){
+    $('search-input').value = state.q;
+    concernBox.querySelectorAll('input').forEach(i => i.checked = state.concerns.includes(i.value));
+    careBox.querySelectorAll('input').forEach(i => i.checked = state.care.includes(i.value));
+    document.querySelectorAll('.mini-toggle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.match === state.match)));
+    typeSelect.value = state.type; insSelect.value = state.ins; areaSelect.value = state.area;
+    $('ages-select').value = state.ages; $('gender-select').value = state.gender;
+    document.querySelectorAll('#setting-segmented button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === state.setting)));
+    $('mylist-btn').setAttribute('aria-pressed', String(state.mine));
+  }
+  function update(){
+    const h = stateToHash();
+    if (h !== location.hash) history.replaceState(null, '', h || location.pathname + location.search);
     render();
-  });
-
-  areaSelect.addEventListener('change', () => { state.area = areaSelect.value; render(); });
-  document.getElementById('ages-select').addEventListener('change', (e) => { state.ages = e.target.value; render(); });
-  document.getElementById('gender-select').addEventListener('change', (e) => { state.gender = e.target.value; render(); });
-
-  const searchInput = document.getElementById('search-input');
-  let searchDebounce;
-  searchInput.addEventListener('input', (e) => {
-    clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => {
-      state.query = e.target.value.trim().toLowerCase();
-      render();
-    }, 120);
-  });
-
-  document.getElementById('reset-btn').addEventListener('click', () => {
-    state = { concerns: [], area: '', ages: '', setting: 'either', gender: '', query: '' };
-    concernBox.querySelectorAll('input:checked').forEach(i => i.checked = false);
-    areaSelect.value = '';
-    document.getElementById('ages-select').value = '';
-    document.getElementById('gender-select').value = '';
-    searchInput.value = '';
-    settingBtns.forEach(b=>b.classList.remove('active'));
-    settingBtns[0].classList.add('active');
-    render();
-  });
-
-  function statusClass(status){
-    if(!status) return 'status-unknown';
-    const s = status.toLowerCase();
-    if(s.includes('accept')) return 'status-accept';
-    if(s.includes('limited')) return 'status-limited';
-    if(s.includes('wait')) return 'status-wait';
-    if(s.includes('not')) return 'status-not';
-    return 'status-unknown';
   }
 
-  const iconCheck = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`;
-  const iconPin = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.4"/></svg>`;
-  const iconPhone = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8.1 9.7a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg>`;
-  const iconGlobe = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>`;
-  const iconDirections = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`;
+  // ---------- events ----------
+  concernBox.addEventListener('change', () => { state.concerns = Array.from(concernBox.querySelectorAll('input:checked')).map(i=>i.value); update(); });
+  careBox.addEventListener('change', () => { state.care = Array.from(careBox.querySelectorAll('input:checked')).map(i=>i.value); update(); });
+  document.querySelectorAll('.mini-toggle button').forEach(b => b.addEventListener('click', () => {
+    state.match = b.dataset.match; syncControls(); update();
+  }));
+  typeSelect.addEventListener('change', () => { state.type = typeSelect.value; update(); });
+  insSelect.addEventListener('change', () => { state.ins = insSelect.value; update(); });
+  areaSelect.addEventListener('change', () => { state.area = areaSelect.value; update(); });
+  $('ages-select').addEventListener('change', e => { state.ages = e.target.value; update(); });
+  $('gender-select').addEventListener('change', e => { state.gender = e.target.value; update(); });
+  document.querySelectorAll('#setting-segmented button').forEach(b => b.addEventListener('click', () => {
+    state.setting = b.dataset.value; syncControls(); update();
+  }));
+  let debounce;
+  $('search-input').addEventListener('input', e => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => { state.q = e.target.value.trim(); update(); }, 150);
+  });
+  $('reset-btn').addEventListener('click', () => { state = blank(); syncControls(); update(); });
+  $('mylist-btn').addEventListener('click', () => { state.mine = !state.mine; syncControls(); render(); });
+
+  const toggle = $('filters-toggle');
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', String(open));
+    $('filters').dataset.collapsed = String(!open);
+  });
+
+  function toast(msg){
+    const t = $('toast'); t.textContent = msg;
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.textContent = '', 2600);
+  }
+  $('copy-btn').addEventListener('click', async () => {
+    const url = location.href;
+    try { await navigator.clipboard.writeText(url); toast('Link copied'); }
+    catch(e){ window.prompt('Copy this link:', url); }
+  });
+  $('print-btn').addEventListener('click', () => window.print());
+
+  window.addEventListener('hashchange', () => {
+    state = hashToState(); syncControls(); render();
+    if (location.hash) document.querySelector('.finder-heading').scrollIntoView();
+  });
+
+  $('results').addEventListener('click', e => {
+    const save = e.target.closest('.save-btn');
+    if (save){
+      const name = save.dataset.name;
+      if (saved.has(name)) saved.delete(name); else saved.add(name);
+      storeSaved();
+      toast(saved.has(name) ? 'Saved to my list' : 'Removed from my list');
+      render();
+      const again = document.querySelector(`.save-btn[data-name="${CSS.escape(name)}"]`);
+      if (again) again.focus();
+      return;
+    }
+    const more = e.target.closest('button.tag.more');
+    if (more){
+      const box = more.parentElement;
+      box.querySelectorAll('.tag[hidden]').forEach(t => t.hidden = false);
+      more.remove();
+    }
+  });
+
+  // ---------- matching ----------
+  function matchesSearch(r, q){
+    if (!q) return true;
+    const hay = [r.name, (r.cities||[]).join(' '), (r.regions||[]).join(' '), r.address,
+      (r.concerns||[]).join(' '), (r.care||[]).join(' '), r.insurance, (r.insuranceCats||[]).join(' '),
+      r.providerType, r.ages, (r.agesBuckets||[]).join(' '), r.approaches].filter(Boolean).join(' ').toLowerCase();
+    return q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+  }
+  function matches(r){
+    if (state.mine && !saved.has(r.name)) return false;
+    if (state.concerns.length){
+      const rs = r.concerns || [];
+      const ok = state.match === 'any' ? state.concerns.some(c => rs.includes(c)) : state.concerns.every(c => rs.includes(c));
+      if (!ok) return false;
+    }
+    if (state.care.length && !state.care.some(c => (r.care||[]).includes(c))) return false;
+    if (state.type && r.providerType !== state.type) return false;
+    if (state.ins){
+      const cats = r.insuranceCats || [];
+      const viaMostPlans = META.commercial.includes(state.ins) && cats.includes(META.mostPlans);
+      if (!cats.includes(state.ins) && !viaMostPlans) return false;
+    }
+    if (state.area){
+      if (state.area.startsWith('r:') && !(r.regions||[]).includes(state.area.slice(2))) return false;
+      if (state.area.startsWith('c:') && !(r.cities||[]).includes(state.area.slice(2))) return false;
+    }
+    if (state.ages && !(r.agesBuckets||[]).includes(state.ages)) return false;
+    if (state.setting === 'inperson' && !r.inPerson) return false;
+    if (state.setting === 'virtual' && !r.virtual) return false;
+    if (state.gender && !(r.gender||[]).includes(state.gender)) return false;
+    return matchesSearch(r, state.q);
+  }
+
+  // ---------- rendering ----------
+  const icon = {
+    check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>`,
+    pin: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.4"/></svg>`,
+    people: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/></svg>`,
+    phone: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8.1 9.7a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg>`,
+    globe: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>`,
+    directions: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
+    star: `<svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 17.3 18.2 21l-1.6-7L22 9.2l-7.2-.6L12 2 9.2 8.6 2 9.2 7.4 14l-1.6 7z"/></svg>`
+  };
 
   function card(r){
-    const shownTags = (r.specialties||[]).slice(0,5);
-    const extra = (r.specialties||[]).length - shownTags.length;
-    const tagHtml = shownTags.map(t=>`<span class="tag">${t}</span>`).join('') +
-      (extra > 0 ? `<span class="tag more">+${extra} more</span>` : '');
+    const isSaved = saved.has(r.name);
+    const tags = [
+      ...(r.care||[]).map(t => ({t, care:true})),
+      ...(r.concerns||[]).map(t => ({t, care:false}))
+    ];
+    const SHOW = 6;
+    const tagHtml = tags.map((x, i) =>
+      `<span class="tag${x.care ? ' care' : ''}"${i >= SHOW ? ' hidden' : ''}>${esc(x.t)}</span>`).join('') +
+      (tags.length > SHOW ? `<button type="button" class="tag more" aria-label="Show ${tags.length - SHOW} more specialties">+${tags.length - SHOW} more</button>` : '');
 
-    const locBits = [r.city, r.ages ? ('Ages: ' + r.ages) : null].filter(Boolean);
+    const where = r.address || (r.cities||[]).join(', ') || 'Location available on request';
+    const metas = [`<div class="meta-line">${icon.pin}<span>${esc(where)}</span></div>`];
+    const who = [r.ages ? 'Ages: ' + r.ages : null, (r.gender||[]).length ? 'Clinicians: ' + r.gender.join(', ') : null].filter(Boolean).join('. ');
+    if (who) metas.push(`<div class="meta-line">${icon.people}<span>${esc(who)}</span></div>`);
+
+    const setting = (!r.inPerson && !r.virtual)
+      ? `<span class="setting-ask">Contact the practice about setting</span>`
+      : `<span class="setting-item ${r.inPerson ? '' : 'off'}">${icon.check} In person</span>
+         <span class="setting-item ${r.virtual ? '' : 'off'}">${icon.check} Virtual</span>`;
+
+    const ins = r.insurance ? esc(r.insurance) : `<span class="unknown">Not listed. Call to ask about your plan.</span>`;
+    const facts = [`<div class="fact"><b>Insurance and payment:</b> ${ins}</div>`];
+    if (r.approaches) facts.push(`<div class="fact"><b>Approaches:</b> ${esc(r.approaches)}</div>`);
 
     const contact = [];
-    if(r.phone) contact.push(`<a href="tel:${r.phone.replace(/[^0-9+]/g,'')}">${iconPhone} ${r.phone}</a>`);
-    if(r.mapsUrl) contact.push(`<a href="${r.mapsUrl}" target="_blank" rel="noopener noreferrer">${iconDirections} Get Directions</a>`);
-
-    const websiteBtn = r.website
-      ? `<a class="visit-btn" href="${r.website}" target="_blank" rel="noopener noreferrer">${iconGlobe} Visit Website</a>`
-      : `<div class="no-site">No website on file &mdash; contact by phone</div>`;
+    if (r.phone) contact.push(`<a href="tel:${esc(r.phone.replace(/[^0-9+]/g,''))}">${icon.phone} ${esc(r.phone)}</a>`);
+    if (safeUrl(r.mapsUrl)) contact.push(`<a href="${esc(r.mapsUrl)}" target="_blank" rel="noopener noreferrer">${icon.directions} Get directions</a>`);
+    const site = safeUrl(r.website);
+    const websiteBtn = site
+      ? `<a class="visit-btn" href="${esc(site)}" target="_blank" rel="noopener noreferrer">${icon.globe} Visit website</a>`
+      : `<div class="no-site">No website on file. Contact by phone.</div>`;
 
     return `
-    <article class="card">
+    <article class="card${isSaved ? ' saved' : ''}">
       <div class="card-head">
-        <h3>${r.name}</h3>
-        <div class="badge-row">
-          ${r.status ? `<span class="status-pill ${statusClass(r.status)}">${r.status}</span>` : ''}
-          ${r.providerType ? `<span class="type-pill">${r.providerType}</span>` : ''}
+        <div>
+          <h3>${esc(r.name)}</h3>
+          ${r.providerType ? `<span class="type-pill">${esc(r.providerType)}</span>` : ''}
         </div>
+        <button type="button" class="save-btn" data-name="${esc(r.name)}" aria-pressed="${isSaved}" aria-label="${isSaved ? 'Remove' : 'Save'} ${esc(r.name)} ${isSaved ? 'from' : 'to'} my list">${icon.star} ${isSaved ? 'Saved' : 'Save'}</button>
       </div>
-      ${r.credentials ? `<div class="meta-line">${r.credentials}</div>` : ''}
-      <div class="meta-line">${iconPin} ${locBits.join(' &middot; ') || 'Location on request'}</div>
-      <div class="setting-row">
-        <span class="setting-item ${r.inPerson ? '' : 'off'}">${iconCheck} In Person</span>
-        <span class="setting-item ${r.virtual ? '' : 'off'}">${iconCheck} Virtual</span>
-      </div>
+      ${metas.join('')}
+      <div class="setting-row">${setting}</div>
       <div class="tags">${tagHtml}</div>
-      ${r.notes ? `<div class="notes">${r.notes}</div>` : ''}
+      <div class="facts">${facts.join('')}</div>
       <div class="card-footer">
         <div class="contact-row">${contact.join('')}</div>
         ${websiteBtn}
@@ -658,60 +789,52 @@ __DIRECTORY_DATA_JSON__
     </article>`;
   }
 
-  function matchesSearch(r, q){
-    if(!q) return true;
-    const haystack = [
-      r.name,
-      r.city, r.area,
-      (r.specialties||[]).join(' '),
-      r.insurance,
-      r.providerType,
-      r.ages
-    ].filter(Boolean).join(' ').toLowerCase();
-    return haystack.includes(q);
-  }
-
-  function matches(r){
-    if(state.concerns.length){
-      const rs = r.specialties || [];
-      const hasAll = state.concerns.every(c => rs.includes(c));
-      if(!hasAll) return false;
-    }
-    if(state.area){
-      const cities = (r.cities && r.cities.length) ? r.cities : (r.city ? [r.city] : []);
-      if(!cities.includes(state.area)) return false;
-    }
-    if(state.ages){
-      const buckets = r.agesBuckets || [];
-      if(!buckets.includes(state.ages)) return false;
-    }
-    if(state.setting === 'inperson' && !r.inPerson) return false;
-    if(state.setting === 'virtual' && !r.virtual) return false;
-    if(state.gender){
-      const genders = r.gender || [];
-      if(!genders.includes(state.gender)) return false;
-    }
-    if(!matchesSearch(r, state.query)) return false;
-    return true;
+  function activeFilterCount(){
+    return state.concerns.length + state.care.length +
+      ['type','ins','area','ages','gender'].filter(k => state[k]).length +
+      (state.setting !== 'either' ? 1 : 0);
   }
 
   function render(){
     const list = DATA.filter(matches).sort((a,b)=>a.name.localeCompare(b.name));
-    const container = document.getElementById('results');
-    document.getElementById('result-count').textContent = list.length;
-    document.getElementById('result-noun').textContent = list.length === 1 ? 'provider' : 'providers';
+    $('result-count').textContent = list.length;
+    $('result-noun').textContent = list.length === 1 ? 'provider' : 'providers';
+    $('result-scope').textContent = state.mine ? 'in my list' : 'match your filters';
+    $('mylist-count').textContent = saved.size;
+    $('ins-hint').hidden = !state.ins;
+    const n = activeFilterCount();
+    $('filters-toggle-label').textContent = n ? `Filters (${n} active)` : 'Filters';
+    $('print-title').textContent = 'Woodward Academy Family Counseling Referral Directory. ' + (state.mine ? 'My saved list' : 'Search results') + ', printed ' + new Date().toLocaleDateString() + '.';
 
-    if(!list.length){
-      container.innerHTML = `<div class="empty-state">
-        <h3>No providers match all of those filters</h3>
-        <p>Try removing a filter, or reach out to your grade-level school counselor &mdash; they may know of additional options not yet listed here.</p>
-      </div>`;
+    const container = $('results');
+    if (!list.length){
+      container.innerHTML = state.mine && !saved.size
+        ? `<div class="empty-state"><h3>Your list is empty</h3><p>Select Save on any provider to add it here. Your list stays on this device so you can compare, print, or bring it to a conversation with your counselor.</p></div>`
+        : `<div class="empty-state"><h3>No providers match all of those filters</h3><p>Try removing a filter or switching concerns to Match any. Your grade-level school counselor may also know of options not yet listed here.</p></div>`;
       return;
     }
     container.innerHTML = list.map(card).join('');
   }
 
+  state = hashToState();
+  syncControls();
   render();
+})();
+
+// Keep the header logo exactly as tall as the title and subtitle together.
+// On phones (560px and narrower) the text wraps to many lines, so the logo
+// uses a fixed smaller size from the CSS instead.
+(function(){
+  const logo = document.getElementById('header-logo');
+  const text = document.getElementById('title-text');
+  const phone = window.matchMedia('(max-width: 560px)');
+  function size(){
+    logo.style.height = phone.matches ? '' : text.getBoundingClientRect().height + 'px';
+  }
+  size();
+  if (window.ResizeObserver) new ResizeObserver(size).observe(text);
+  window.addEventListener('resize', size);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);
 })();
 </script>
 
