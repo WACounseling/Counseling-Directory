@@ -313,6 +313,8 @@
   .fact{font-size:13px; line-height:1.5; color:var(--ink);}
   .fact b{font-weight:700; color:var(--maroon-dark);}
   .fact .unknown{color:var(--charcoal); font-style:italic;}
+  .fact-note{display:block; margin-top:3px; font-size:12px; color:var(--charcoal); font-style:italic;}
+  .hint + .hint{margin-top:4px;}
 
   .card-footer{margin-top:auto; padding-top:12px; border-top:1px dashed var(--line); display:flex; flex-direction:column; gap:8px;}
   .contact-row{display:flex; flex-wrap:wrap; gap:14px; font-size:13.5px;}
@@ -460,7 +462,8 @@
       <div>
         <label class="group-label" for="ins-select">Insurance or payment</label>
         <select id="ins-select"><option value="">Any</option></select>
-        <p class="hint" id="ins-hint" hidden>Practices that haven't shared their insurance list don't appear here. Calling to ask is always worth it.</p>
+        <p class="hint">Insurance and payment policies change often and may not be current here. Confirm directly with the provider.</p>
+        <p class="hint" id="ins-hint" hidden>Practices without a listed insurance plan won't appear in these results.</p>
       </div>
       <div>
         <label class="group-label" for="area-select">General area</label>
@@ -758,7 +761,8 @@ __DIRECTORY_META_JSON__
          <span class="setting-item ${r.virtual ? '' : 'off'}">${icon.check} Virtual</span>`;
 
     const ins = r.insurance ? esc(r.insurance) : `<span class="unknown">Not listed. Call to ask about your plan.</span>`;
-    const facts = [`<div class="fact"><b>Insurance and payment:</b> ${ins}</div>`];
+    const insNote = r.insurance ? `<span class="fact-note">Policies change often. Confirm coverage with the provider.</span>` : '';
+    const facts = [`<div class="fact"><b>Insurance and payment:</b> ${ins}${insNote}</div>`];
     if (r.approaches) facts.push(`<div class="fact"><b>Approaches:</b> ${esc(r.approaches)}</div>`);
 
     const contact = [];
