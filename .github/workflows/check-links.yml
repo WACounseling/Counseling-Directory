@@ -1,0 +1,21 @@
+name: Weekly Website Check
+
+on:
+  schedule:
+    - cron: '23 12 * * 1'   # Mondays at 12:23 UTC (~7:23-8:23 AM Eastern)
+  workflow_dispatch: {}      # adds a manual "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read             # read-only: this check never changes the site
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # Visits every provider website and lists broken or moved links on this
+      # run's Summary page. The run fails (and GitHub emails you) only when a
+      # link is clearly broken.
+      - name: Check provider websites
+        run: python3 scripts/check_links.py
