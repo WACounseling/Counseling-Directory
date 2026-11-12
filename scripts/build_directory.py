@@ -5,25 +5,40 @@ data/directory.csv (the synced, public-safe export of the "Public Ready"
 Google Sheet tab).
 
 Usage: python3 scripts/build_directory.py
-Reads:  data/directory.csv, index_template.html
-Writes: index.html
+Reads:  data/directory.csv, index_template.html, index.html (previous build,
+        used only for the shrinkage guard)
+Writes: index.html, plus a data-quality report to the GitHub Actions run
+        summary (when run inside Actions) and to the console.
+
+Safety: if the new provider count is much smaller than the previously
+published count, the build stops without writing anything. To publish a
+deliberate large removal, run the workflow manually from the Actions tab
+with "Allow a large drop in providers" checked (sets ALLOW_SHRINK=true).
 """
 import csv
 import json
+import os
 import re
+import sys
 import urllib.parse
-from pathlib import Path
+from collections import defaultdict
 from datetime import date
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CSV_PATH = REPO_ROOT / "data" / "directory.csv"
 TEMPLATE_PATH = REPO_ROOT / "index_template.html"
 OUTPUT_PATH = REPO_ROOT / "index.html"
 
+# Stop if the provider count drops by more than this share (or this many
+# records, whichever is larger) compared with the live site.
+SHRINK_LIMIT_PCT = 0.10
+SHRINK_LIMIT_MIN = 5
+
 # ---- Specialty tag normalization -------------------------------------
 # Maps a raw "Specialty(ies) List" token (as it appears in the sheet) to
 # one or more display tags used on the public site. Tokens not found here
-# pass through unchanged (title-cased as-is).
+# pass through unchanged and are listed in the quality report.
 SPECIALTY_MAP = {
     "Addiction/Substance Use": ["Substance Use"],
     "Anxiety": ["Anxiety"],
@@ -50,14 +65,87 @@ SPECIALTY_MAP = {
     "Adoption": ["Adoption"],
     "Psychiatrist": ["Medication Management"],
     "Crisis Intervention": ["Crisis Intervention"],
-    "Residential": ["Residential"],
-    "Bi-Lingual": ["Bi-Lingual"],
+    "Residential": ["Residential Treatment"],
+    "Bi-Lingual": ["Bilingual Services"],
     "Art Therapy": ["Art Therapy"],
     "Summer Camps & Programs": ["Summer Camps & Programs"],
     "Play Therapy": ["Play Therapy"],
-    "IOP": ["IOP"],
-    "PHP": ["PHP"],
+    "IOP": ["Intensive Outpatient (IOP)"],
+    "PHP": ["Partial Hospitalization (PHP)"],
 }
+
+# Tags that describe the kind of care offered rather than the concern.
+# These go in the "Type of care" filter; everything else is a concern.
+FREE_LINE_TAG = "Free Crisis or Support Line"
+CARE_TAGS = {
+    "Psychoeducational Testing",
+    "Medication Management",
+    "Intensive Outpatient (IOP)",
+    "Partial Hospitalization (PHP)",
+    "Residential Treatment",
+    "Crisis Intervention",
+    "Play Therapy",
+    "Art Therapy",
+    "Bilingual Services",
+    "Summer Camps & Programs",
+    FREE_LINE_TAG,
+}
+
+# ---- Area / region normalization ---------------------------------------
+CITY_ALIASES = {
+    "john's creek": "Johns Creek",
+    "midtown atlanta": "Midtown",
+    "virginia highlands": "Virginia-Highland",
+    "poncey highlands": "Poncey-Highland",
+    "poncey-highlands": "Poncey-Highland",
+}
+
+# Order here is the order regions appear in the "General area" menu.
+REGIONS = [
+    ("Intown Atlanta", ["Atlanta", "Buckhead", "Midtown", "Poncey-Highland",
+                        "Virginia-Highland", "Grant Park", "Kirkwood"]),
+    ("South metro (near main campus)", ["College Park", "East Point", "Hapeville",
+                                        "Fayetteville", "Peachtree City", "Newnan"]),
+    ("North Fulton", ["Sandy Springs", "Roswell", "Alpharetta", "Johns Creek", "Milton"]),
+    ("DeKalb", ["Decatur", "Tucker", "Dunwoody", "Chamblee", "Brookhaven", "Scottdale"]),
+    ("Cobb & Cherokee", ["Marietta", "Smyrna", "Kennesaw", "Woodstock", "Vinings"]),
+    ("Gwinnett & Forsyth", ["Lawrenceville", "Norcross", "Duluth", "Suwanee",
+                            "Sugar Hill", "Cumming"]),
+    ("Outside metro Atlanta", ["Athens"]),
+    ("Statewide or nationwide", ["Georgia", "Nationwide"]),
+]
+OTHER_REGION = "Other areas"
+CITY_TO_REGION = {c.lower(): r for r, cities in REGIONS for c in cities}
+
+# ---- Insurance categories ----------------------------------------------
+# (label, keywords). Matched case-insensitively against the full insurance
+# text after removing "(not ...)" asides. Order is the menu order.
+INSURANCE_CATEGORIES = [
+    ("Aetna", ["aetna"]),
+    ("Anthem / Blue Cross Blue Shield", ["anthem", "blue cross", "bluecross", "bcbs"]),
+    ("Cigna", ["cigna"]),
+    ("UnitedHealthcare / Optum", ["united health", "unitedhealth", "uhc", "optum",
+                                  "umr", "oxford", "surest"]),
+    ("Humana", ["humana"]),
+    ("Kaiser Permanente", ["kaiser"]),
+    ("Ambetter", ["ambetter"]),
+    ("Medicaid / PeachCare", ["medicaid", "amerigroup", "peachstate", "peach state",
+                              "caresource", "wellcare", "peachcare"]),
+    ("Medicare", ["medicare"]),
+    ("TRICARE", ["tricare"]),
+    ("Out of network (superbill)", ["out-of-network", "out of network", "superbill",
+                                    "reimbursement"]),
+    ("Private pay", ["private pay", "self-pay", "self pay", "does not accept insurance"]),
+    ("Sliding scale", ["sliding"]),
+    ("Free", ["free"]),
+]
+MOST_PLANS_KEYWORDS = ["most major", "most insurance", "wide variety"]
+MOST_PLANS_LABEL = "Most major plans (verify yours)"
+# Carriers a "most major plans" practice should also appear under.
+COMMERCIAL = {"Aetna", "Anthem / Blue Cross Blue Shield", "Cigna",
+              "UnitedHealthcare / Optum", "Humana", "Kaiser Permanente", "Ambetter"}
+
+NOT_ASIDE_RE = re.compile(r"\(\s*not\b[^)]*\)?", re.I)
 
 # ---- Provider type inference -------------------------------------
 MD_RE = re.compile(r"\bM\.?D\.?\b")
@@ -79,12 +167,19 @@ def infer_provider_type(name, insurance_text, specialties_raw):
     return "Therapist"
 
 
-def normalize_specialties(raw):
+UNKNOWN_SPECIALTIES = defaultdict(list)
+
+
+def normalize_specialties(raw, name=""):
     if not raw:
         return []
     out = []
     for token in [t.strip().strip('"') for t in raw.split(",") if t.strip().strip('"')]:
-        out.extend(SPECIALTY_MAP.get(token, [token]))
+        if token not in SPECIALTY_MAP:
+            UNKNOWN_SPECIALTIES[token].append(name)
+        for tag in SPECIALTY_MAP.get(token, [token]):
+            if tag not in out:
+                out.append(tag)
     return out
 
 
@@ -96,34 +191,58 @@ def parse_virtual_inperson(text):
 
 
 AGE_CUTOFF_RE = re.compile(r"(\d+)\s*(?:and older|and up|\+)", re.I)
+AGE_RANGE_RE = re.compile(r"(\d+)\s*(?:-|to|through)\s*(\d+)", re.I)
+UNPARSED_AGES = []
 
 
-def parse_ages_buckets(ages_text):
+def buckets_for_range(lo, hi):
+    out = []
+    if lo <= 11:
+        out.append("Children")
+    if lo <= 17 and hi >= 12:
+        out.append("Teens")
+    if hi >= 18:
+        out.append("Adults")
+    return out
+
+
+def parse_ages_buckets(ages_text, name=""):
     t = (ages_text or "").strip().lower()
     if not t:
         return []
     if "all age" in t:
         return ["Children", "Teens", "Adults"]
-    if "teens and adult" in t:
+    if re.search(r"\bte[ae]ns? and (adult|older)", t):
         return ["Teens", "Adults"]
-    if t == "teens":
+    if t in ("teens", "teen", "teem", "teems", "adolescents"):
         return ["Teens"]
-    if t == "adults":
+    if t in ("adults", "adult"):
         return ["Adults"]
-    if t == "children":
+    if t in ("children", "kids"):
         return ["Children"]
+    m = AGE_RANGE_RE.search(t)
+    if m:
+        return buckets_for_range(int(m.group(1)), int(m.group(2)))
     m = AGE_CUTOFF_RE.search(t)
     if m:
-        n = int(m.group(1))
-        if n <= 11:
-            return ["Children"]
-        if n <= 17:
-            return ["Teens"]
-        return ["Adults"]
-    # Unparseable / data-quality issue (typos, sheet-mangled dates, etc.)
-    # Default to visible under every age filter rather than hiding the
-    # provider entirely.
+        # "6 and older" serves children, teens AND adults.
+        return buckets_for_range(int(m.group(1)), 120)
+    # Unparseable: show under every age filter rather than hide, and report it.
+    UNPARSED_AGES.append((name, ages_text))
     return ["Children", "Teens", "Adults"]
+
+
+def tidy_ages(text):
+    if not text:
+        return None
+    t = text.strip()
+    low = t.lower()
+    if "all age" in low:
+        return "All ages"
+    if low in ("teem", "teems", "teen"):
+        return "Teens"
+    # Sentence case: "Teens and Adults" -> "Teens and adults"
+    return t[:1].upper() + t[1:].lower()
 
 
 GENDER_FIX = {
@@ -140,51 +259,177 @@ def parse_gender(text):
     return out
 
 
+def clean_address(address):
+    """Collapse sheet line breaks/tabs into one readable line."""
+    if not address:
+        return None
+    parts = [p.strip(" ,\t") for p in re.split(r"[\r\n]+", address) if p.strip(" ,\t")]
+    one = ", ".join(parts)
+    one = re.sub(r"[ \t]+", " ", one)
+    one = re.sub(r"\s+,", ",", one)
+    return one or None
+
+
 def build_maps_url(address):
     if not address:
         return None
-    query = address.replace("\n", ", ").replace("\t", " ")
-    return "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote_plus(query, safe="/")
+    return "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote_plus(address)
+
+
+UNMAPPED_CITIES = defaultdict(list)
+
+
+def split_cities(area_text, name=""):
+    raw = [c.strip() for c in re.split(r"[\r\n,/]+", area_text or "") if c.strip()]
+    cities = []
+    for c in raw:
+        c = CITY_ALIASES.get(c.lower(), c)
+        if c not in cities:
+            cities.append(c)
+    regions = []
+    for c in cities:
+        r = CITY_TO_REGION.get(c.lower())
+        if not r:
+            UNMAPPED_CITIES[c].append(name)
+            r = OTHER_REGION
+        if r not in regions:
+            regions.append(r)
+    return cities, regions
+
+
+def insurance_display(text):
+    """Readable insurance text for the card, or None when we don't know."""
+    if not text:
+        return None
+    tokens = [t.strip() for t in re.split(r"[\r\n]+|,(?![^()]*\))", text) if t.strip()]
+    if not tokens:
+        return None
+    if all(t.lower() == "various" for t in tokens):
+        return None
+    tokens = [t for t in tokens if t.lower() != "various"]
+    return ", ".join(tokens)
+
+
+def insurance_categories(text):
+    if not text:
+        return []
+    t = NOT_ASIDE_RE.sub(" ", text).lower()
+    cats = [label for label, kws in INSURANCE_CATEGORIES if any(k in t for k in kws)]
+    if any(k in t for k in MOST_PLANS_KEYWORDS):
+        cats.append(MOST_PLANS_LABEL)
+    return cats
 
 
 def build_record(row):
-    name = (row.get("Clinician/Group Name") or "").strip()
+    name = re.sub(r"\s+", " ", (row.get("Clinician/Group Name") or "")).strip()
     if not name:
         return None
-    address = (row.get("Address") or "").strip() or None
-    area_text = (row.get("City/Area") or "").strip()
-    cities = [c.strip() for c in area_text.split("\n") if c.strip()]
-    city = cities[0] if cities else None
-    insurance = (row.get("Insurance List") or "").strip() or None
+    address = clean_address(row.get("Address"))
+    cities, regions = split_cities(row.get("City/Area"), name)
+    insurance_raw = (row.get("Insurance List") or "").strip() or None
     specialties_raw = row.get("Specialty(ies) List") or ""
     virtual, inperson = parse_virtual_inperson(row.get("Virtual Option"))
-    ages = (row.get("Ages Served") or "").strip() or None
+    ages_raw = (row.get("Ages Served") or "").strip() or None
     website = (row.get("Website") or "").strip() or None
     if website and not website.startswith(("http://", "https://")):
         website = "https://" + website
     phone = (row.get("Phone") or "").strip() or None
     approaches = (row.get("Therapeutic Approaches") or "").strip() or None
 
+    tags = normalize_specialties(specialties_raw, name)
+    if insurance_raw and re.search(r"free (crisis|help|nonprofit)", insurance_raw, re.I):
+        tags.append(FREE_LINE_TAG)
+
     return {
         "name": name,
-        "credentials": None,
-        "providerType": infer_provider_type(name, insurance, specialties_raw),
-        "specialties": normalize_specialties(specialties_raw),
-        "insurance": insurance,
+        "providerType": infer_provider_type(name, insurance_raw, specialties_raw),
+        "concerns": [t for t in tags if t not in CARE_TAGS],
+        "care": [t for t in tags if t in CARE_TAGS],
+        "insurance": insurance_display(insurance_raw),
+        "insuranceCats": insurance_categories(insurance_raw),
         "virtual": virtual,
         "inPerson": inperson,
-        "city": city,
         "cities": cities,
-        "area": area_text or None,
+        "regions": regions,
         "address": address,
         "website": website,
         "phone": phone,
-        "ages": ages,
-        "agesBuckets": parse_ages_buckets(ages),
+        "ages": tidy_ages(ages_raw),
+        "agesBuckets": parse_ages_buckets(ages_raw, name),
         "approaches": approaches,
         "gender": parse_gender(row.get("Gender")),
         "mapsUrl": build_maps_url(address),
+        "_insuranceRaw": insurance_raw,
     }
+
+
+def previous_count():
+    """Provider count currently published in index.html, or None."""
+    if not OUTPUT_PATH.exists():
+        return None
+    html = OUTPUT_PATH.read_text(encoding="utf-8")
+    m = re.search(r'<script id="directory-data" type="application/json">\s*(.*?)\s*</script>', html, re.S)
+    if not m:
+        return None
+    try:
+        return len(json.loads(m.group(1)))
+    except ValueError:
+        return None
+
+
+# Shared booking/directory sites, not a sign of a duplicate listing.
+SHARED_SITES = {"psychologytoday.com", "care.headway.co", "headway.co", "helloalma.com",
+                "growtherapy.com", "simplepractice.com", "zencare.co"}
+
+
+def normalize_site(url):
+    if not url:
+        return None
+    u = re.sub(r"^https?://(www\.)?", "", url.lower()).split("/")[0]
+    return None if not u or u in SHARED_SITES else u
+
+
+def quality_report(records, prev):
+    lines = ["## Directory data check", ""]
+    lines.append(f"**Providers:** {len(records)}" + (f" (was {prev})" if prev is not None else ""))
+    lines.append("")
+
+    def section(title, items):
+        if not items:
+            return
+        lines.append(f"### {title} ({len(items)})")
+        for i in items:
+            lines.append(f"- {i}")
+        lines.append("")
+
+    section("Specialty values not recognized (shown as-is on the site)",
+            [f"`{k}`: {', '.join(v)}" for k, v in sorted(UNKNOWN_SPECIALTIES.items())])
+    section("Cities not assigned to a region (shown under \"Other areas\")",
+            [f"`{k}`: {', '.join(v)}" for k, v in sorted(UNMAPPED_CITIES.items())])
+    section("Ages Served values the site couldn't read (shown under every age)",
+            [f"{n}: `{a}`" for n, a in UNPARSED_AGES])
+    section("Neither in-person nor virtual (hidden by the Setting filter)",
+            [r["name"] for r in records if not r["inPerson"] and not r["virtual"]])
+    section("No City/Area", [r["name"] for r in records if not r["cities"]])
+    section("No insurance information (blank or only \"Various\")",
+            [r["name"] for r in records if not r["insurance"]])
+    section("No phone", [r["name"] for r in records if not r["phone"]])
+    section("No website", [r["name"] for r in records if not r["website"]])
+    section("No Ages Served", [r["name"] for r in records if not r["ages"]])
+
+    dupes = []
+    for key, label in (("phone", "phone"), ("website", "website")):
+        seen = defaultdict(list)
+        for r in records:
+            v = r.get(key)
+            v = re.sub(r"\D", "", v) if key == "phone" and v else normalize_site(v) if v else None
+            if v:
+                seen[v].append(r["name"])
+        for v, names in seen.items():
+            if len(names) > 1:
+                dupes.append(f"Same {label} ({v}): {'; '.join(names)}")
+    section("Possible duplicates to check (may be intentional for group practices)", dupes)
+    return "\n".join(lines)
 
 
 def main():
@@ -194,13 +439,42 @@ def main():
 
     records.sort(key=lambda r: r["name"].lower())
 
+    prev = previous_count()
+    report = quality_report(records, prev)
+    print(report)
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with open(summary_path, "a", encoding="utf-8") as s:
+            s.write(report + "\n")
+
+    allow_shrink = os.environ.get("ALLOW_SHRINK", "").lower() == "true"
+    if prev and not allow_shrink:
+        drop = prev - len(records)
+        if drop > max(SHRINK_LIMIT_MIN, prev * SHRINK_LIMIT_PCT):
+            msg = (f"Provider count dropped from {prev} to {len(records)}. The site was NOT updated. "
+                   "If this is intentional, run the workflow manually with "
+                   "'Allow a large drop in providers' checked.")
+            print(f"::error::{msg}")
+            sys.exit(1)
+
+    for r in records:
+        r.pop("_insuranceRaw", None)
+
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
-    data_json = json.dumps(records, ensure_ascii=False)
+    # "</" is escaped so no provider text can ever close the <script> tag early.
+    data_json = json.dumps(records, ensure_ascii=False).replace("</", "<\\/")
+    meta_json = json.dumps({
+        "regions": [r for r, _ in REGIONS] + [OTHER_REGION],
+        "insurance": [l for l, _ in INSURANCE_CATEGORIES] + [MOST_PLANS_LABEL],
+        "commercial": sorted(COMMERCIAL),
+        "mostPlans": MOST_PLANS_LABEL,
+        "freeLineTag": FREE_LINE_TAG,
+        "cityRegion": {c: CITY_TO_REGION.get(c.lower(), OTHER_REGION)
+                       for r in records for c in r["cities"]},
+    }, ensure_ascii=False)
     output = template.replace("__DIRECTORY_DATA_JSON__", data_json)
-    output = output.replace(
-        'id="last-updated">August 2026',
-        f'id="last-updated">{date.today().strftime("%B %Y")}',
-    )
+    output = output.replace("__DIRECTORY_META_JSON__", meta_json)
+    output = output.replace("__LAST_UPDATED__", date.today().strftime("%B %Y"))
 
     OUTPUT_PATH.write_text(output, encoding="utf-8")
     print(f"Wrote {OUTPUT_PATH} with {len(records)} providers.")
