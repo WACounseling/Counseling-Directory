@@ -106,14 +106,14 @@ CITY_ALIASES = {
 REGIONS = [
     ("Intown Atlanta", ["Atlanta", "Buckhead", "Midtown", "Poncey-Highland",
                         "Virginia-Highland", "Grant Park", "Kirkwood"]),
-    ("South metro (near main campus)", ["College Park", "East Point", "Hapeville",
+    ("South metro (near main campus)", ["College Park", "East Point", "Hapeville", "Fairburn",
                                         "Fayetteville", "Peachtree City", "Newnan"]),
     ("North Fulton", ["Sandy Springs", "Roswell", "Alpharetta", "Johns Creek", "Milton"]),
     ("DeKalb", ["Decatur", "Tucker", "Dunwoody", "Chamblee", "Brookhaven", "Scottdale"]),
     ("Cobb & Cherokee", ["Marietta", "Smyrna", "Kennesaw", "Woodstock", "Vinings"]),
     ("Gwinnett & Forsyth", ["Lawrenceville", "Norcross", "Duluth", "Suwanee",
-                            "Sugar Hill", "Cumming"]),
-    ("Outside metro Atlanta", ["Athens"]),
+                            "Sugar Hill", "Cumming", "Buford", "Snellville"]),
+    ("Outside metro Atlanta", ["Athens", "Winder", "North Carolina"]),
     ("Statewide or nationwide", ["Georgia", "Nationwide"]),
 ]
 OTHER_REGION = "Other areas"
@@ -413,7 +413,7 @@ def build_record(row):
     approaches = (row.get("Therapeutic Approaches") or "").strip() or None
 
     tags = normalize_specialties(specialties_raw, name)
-    if insurance_raw and re.search(r"free (crisis|help|nonprofit)", insurance_raw, re.I):
+    if insurance_raw and re.search(r"free (crisis|help)", insurance_raw, re.I):
         tags.append(FREE_LINE_TAG)
 
     # A provider can have more than one type: anyone who offers testing also
