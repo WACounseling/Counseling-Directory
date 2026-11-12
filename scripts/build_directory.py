@@ -28,6 +28,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CSV_PATH = REPO_ROOT / "data" / "directory.csv"
+PLACES_PATH = REPO_ROOT / "data" / "ga-places.json"
 TEMPLATE_PATH = REPO_ROOT / "index_template.html"
 OUTPUT_PATH = REPO_ROOT / "index.html"
 
@@ -226,6 +227,15 @@ def parse_ages_buckets(ages_text, name=""):
     m = AGE_RANGE_RE.search(t)
     if m:
         return buckets_for_range(int(m.group(1)), int(m.group(2)))
+    words = []
+    if re.search(r"\b(child|children|kids?)\b", t):
+        words.append("Children")
+    if re.search(r"\b(te[ae]ns?|adolescents?)\b", t):
+        words.append("Teens")
+    if re.search(r"\badults?\b", t):
+        words.append("Adults")
+    if words and not AGE_CUTOFF_RE.search(t):
+        return words
     m = AGE_CUTOFF_RE.search(t)
     if m:
         # "6 and older" serves children, teens AND adults.
@@ -323,6 +333,69 @@ def insurance_categories(text):
     return cats
 
 
+# ---- Readable names ------------------------------------------------------
+# The sheet lists people as "Last, First, Credentials". Cards show
+# "First Last, Credentials"; sorting still uses the sheet's order (last name).
+CREDENTIALS = {
+    "lpc", "lcsw", "lmft", "lmsw", "msw", "apc", "ncc", "rpt", "rpt-s", "lapc", "lamft",
+    "phd", "psyd", "md", "do", "edd", "eds", "eds", "ms", "ma", "med", "mmsc", "np",
+    "pmhnp", "aprn", "bcba", "cpcs", "ncsp", "lcsw-c", "lpcc", "pc", "llc", "pllc",
+}
+BUSINESS_WORDS = re.compile(
+    r"\b(services|center|centre|group|counseling|psychology|psychological|institute|clinic|"
+    r"associates|collective|practice|health|llc|inc|academy|consulting|partners)\b", re.I)
+
+
+def is_credential(token):
+    t = token.strip().strip(".,").replace(".", "").lower()
+    return t in CREDENTIALS or (len(t) >= 2 and token.replace(".", "").replace("-", "").isupper())
+
+
+def display_name(name):
+    parts = [p.strip() for p in name.split(",")]
+    if len(parts) < 2 or not parts[0] or not parts[1]:
+        return name
+    last, given, rest = parts[0], parts[1], [p for p in parts[2:] if p]
+    if BUSINESS_WORDS.search(last) or is_credential(given) or len(last.split()) > 3:
+        return name  # a business name that happens to contain a comma
+    words = given.split()
+    trailing = []
+    while len(words) > 1 and is_credential(words[-1]):
+        trailing.insert(0, words.pop())
+    creds = trailing + rest
+    shown = " ".join(words + [last])
+    return shown + (", " + ", ".join(creds) if creds else "")
+
+
+# ---- Approximate locations for "near me" sorting ------------------------
+# Uses the ZIP code in the address (or, failing that, the city) and the
+# Georgia ZIP/city centers in data/ga-places.json. No outside service needed.
+PLACES = {"zips": {}, "cities": {}}
+CITY_ZIP_FALLBACK = {
+    "sandy springs": "30328", "johns creek": "30097", "dunwoody": "30338", "milton": "30004",
+    "brookhaven": "30319", "buckhead": "30305", "midtown": "30309", "virginia-highland": "30306",
+    "poncey-highland": "30306", "grant park": "30312", "kirkwood": "30317", "vinings": "30339",
+}
+ZIP_RE = re.compile(r"\b(\d{5})(?:-\d{4})?\b")
+LOCATION_ISSUES = []
+
+
+def locate(address, cities, name):
+    if address:
+        zips = [z for z in ZIP_RE.findall(address) if z in PLACES["zips"]]
+        if zips:
+            return PLACES["zips"][zips[-1]], False
+        if re.search(r"\d", address) and re.search(r"\bGA\b|Georgia", address):
+            LOCATION_ISSUES.append(f"{name}: no valid ZIP code in `{address}`")
+    for c in cities or []:
+        key = c.lower()
+        if key in CITY_ZIP_FALLBACK and CITY_ZIP_FALLBACK[key] in PLACES["zips"]:
+            return PLACES["zips"][CITY_ZIP_FALLBACK[key]], True
+        if key in PLACES["cities"]:
+            return PLACES["cities"][key], True
+    return None, False
+
+
 def build_record(row):
     name = re.sub(r"\s+", " ", (row.get("Clinician/Group Name") or "")).strip()
     if not name:
@@ -350,8 +423,13 @@ def build_record(row):
     if TESTING_TAG in tags and TESTING_TYPE not in provider_types:
         provider_types.append(TESTING_TYPE)
 
+    loc, loc_approx = locate(address, cities, name)
+
     return {
         "name": name,
+        "displayName": display_name(name),
+        "loc": loc,
+        "locApprox": loc_approx,
         "providerType": primary_type,
         "providerTypes": provider_types,
         "concerns": [t for t in tags if t not in CARE_TAGS],
@@ -440,7 +518,53 @@ def quality_report(records, prev):
             if len(names) > 1:
                 dupes.append(f"Same {label} ({v}): {'; '.join(names)}")
     section("Possible duplicates to check (may be intentional for group practices)", dupes)
+    section("Addresses without a usable ZIP code (distance is estimated from the city, or not shown)",
+            LOCATION_ISSUES)
+    lines.extend(coverage_report(records))
     return "\n".join(lines)
+
+
+THIN = 3  # fewer than this many options is flagged
+
+
+def coverage_report(records):
+    """Where options are thin, to guide recruiting. Uses only public data."""
+    out = ["## Where options are thin", "",
+           f"Counts of providers on the site. Anything under {THIN} is marked with \u26a0\ufe0f.", ""]
+
+    def mark(n):
+        return f"{n} \u26a0\ufe0f" if n < THIN else str(n)
+
+    concerns = sorted({c for r in records for c in r["concerns"]})
+    out += ["### Concerns by age group", "", "| Concern | Children | Teens | In person, teens |", "|---|---|---|---|"]
+    for c in concerns:
+        has = [r for r in records if c in r["concerns"]]
+        kids = sum("Children" in r["agesBuckets"] for r in has)
+        teens = [r for r in has if "Teens" in r["agesBuckets"]]
+        out.append(f"| {c} | {mark(kids)} | {mark(len(teens))} | {mark(sum(r['inPerson'] for r in teens))} |")
+    out.append("")
+
+    care = sorted({c for r in records for c in r["care"]})
+    out += ["### Types of care", "", "| Type of care | Providers | Teens |", "|---|---|---|"]
+    for c in care:
+        has = [r for r in records if c in r["care"]]
+        out.append(f"| {c} | {mark(len(has))} | {mark(sum('Teens' in r['agesBuckets'] for r in has))} |")
+    out.append("")
+
+    out += ["### Areas", "", "| Area | In person | Medicaid / PeachCare | Psychiatry | Testing |", "|---|---|---|---|---|"]
+    for region, _ in REGIONS:
+        here = [r for r in records if region in r["regions"]]
+        if not here:
+            out.append(f"| {region} | {mark(0)} | {mark(0)} | {mark(0)} | {mark(0)} |")
+            continue
+        out.append("| {} | {} | {} | {} | {} |".format(
+            region,
+            mark(sum(r["inPerson"] for r in here)),
+            mark(sum("Medicaid / PeachCare" in r["insuranceCats"] for r in here)),
+            mark(sum("Psychiatrist" in r["providerTypes"] for r in here)),
+            mark(sum(TESTING_TYPE in r["providerTypes"] for r in here))))
+    out.append("")
+    return out
 
 
 # ---- "List last reviewed" date ------------------------------------------
@@ -486,6 +610,8 @@ def previous_reviewed():
 
 
 def main():
+    if PLACES_PATH.exists():
+        PLACES.update(json.loads(PLACES_PATH.read_text(encoding="utf-8")))
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     records = [r for r in (build_record(row) for row in rows) if r]
@@ -534,6 +660,7 @@ def main():
         "commercial": sorted(COMMERCIAL),
         "mostPlans": MOST_PLANS_LABEL,
         "freeLineTag": FREE_LINE_TAG,
+        "zips": PLACES["zips"],
         "cityRegion": {c: CITY_TO_REGION.get(c.lower(), OTHER_REGION)
                        for r in records for c in r["cities"]},
     }, ensure_ascii=False)
