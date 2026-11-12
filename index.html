@@ -707,7 +707,7 @@
     </div>
     <div class="footer-col">
       <h2 class="footer-head">About this directory</h2>
-      <p>List last reviewed for new and updated clinicians: <strong id="last-reviewed">November 2026</strong></p>
+      <p>Directory last checked for updates: <strong id="last-checked">November 12, 2026</strong></p>
       <p>Questions, or know of a listing that's out of date? Contact your grade-level school counselor.</p>
       <p class="footer-dept">Woodward Academy Counseling Department</p>
     </div>
@@ -1265,6 +1265,22 @@
   syncControls();
   render();
   if (DIALOG_HASH[location.hash]) openDialog(DIALOG_HASH[location.hash]);
+})();
+
+// Show when the daily automatic check last looked at the spreadsheet.
+// data/last-checked.json is rewritten by every successful daily sync. If it
+// can't be loaded, the date already in the footer (from the last rebuild) stays.
+(function(){
+  const el = document.getElementById('last-checked');
+  if (!el || !window.fetch) return;
+  fetch('data/last-checked.json', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => {
+      const d = j && j.checked ? new Date(j.checked) : null;
+      if (!d || isNaN(d)) return;
+      el.textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' });
+    })
+    .catch(() => {});
 })();
 
 // Keep the header logo exactly as tall as the title and subtitle together.
