@@ -7,14 +7,19 @@ on:
                              # avoiding the top of the hour, its highest-load window,
                              # since jobs scheduled there are the most likely to be
                              # delayed or silently dropped)
-  workflow_dispatch: {}       # adds a manual "Run workflow" button in the Actions tab
+  workflow_dispatch:          # adds a manual "Run workflow" button in the Actions tab
+    inputs:
+      allow_shrink:
+        description: "Allow a large drop in providers (only check this if you removed many rows on purpose)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write            # needed so the workflow can commit updated files
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04      # pinned so GitHub's Ubuntu 26 migration can't change the environment
     steps:
       - uses: actions/checkout@v4
 
@@ -38,6 +43,10 @@ jobs:
           fi
 
       - name: Rebuild the branded HTML directory from the synced data
+        # Also writes a data-quality report to this run's Summary page, and stops
+        # (without changing the site) if the provider count drops sharply.
+        env:
+          ALLOW_SHRINK: ${{ inputs.allow_shrink || 'false' }}
         run: python3 scripts/build_directory.py
 
       - name: Commit if the data or site changed
