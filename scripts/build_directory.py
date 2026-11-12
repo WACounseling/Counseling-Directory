@@ -148,6 +148,8 @@ COMMERCIAL = {"Aetna", "Anthem / Blue Cross Blue Shield", "Cigna",
 NOT_ASIDE_RE = re.compile(r"\(\s*not\b[^)]*\)?", re.I)
 
 # ---- Provider type inference -------------------------------------
+TESTING_TAG = "Psychoeducational Testing"
+TESTING_TYPE = "Testing/Evaluation"
 MD_RE = re.compile(r"\bM\.?D\.?\b")
 PHD_RE = re.compile(r"\bPh\.?D\.?\b", re.I)
 PSYD_RE = re.compile(r"\bPsy\.?D\.?\b", re.I)
@@ -340,9 +342,17 @@ def build_record(row):
     if insurance_raw and re.search(r"free (crisis|help|nonprofit)", insurance_raw, re.I):
         tags.append(FREE_LINE_TAG)
 
+    # A provider can have more than one type: anyone who offers testing also
+    # counts as Testing/Evaluation, alongside their main type.
+    primary_type = infer_provider_type(name, insurance_raw, specialties_raw)
+    provider_types = [primary_type]
+    if TESTING_TAG in tags and TESTING_TYPE not in provider_types:
+        provider_types.append(TESTING_TYPE)
+
     return {
         "name": name,
-        "providerType": infer_provider_type(name, insurance_raw, specialties_raw),
+        "providerType": primary_type,
+        "providerTypes": provider_types,
         "concerns": [t for t in tags if t not in CARE_TAGS],
         "care": [t for t in tags if t in CARE_TAGS],
         "insurance": insurance_display(insurance_raw),
