@@ -52,6 +52,7 @@
   a{color:inherit;}
   button{font-family:inherit;}
   :focus-visible{outline:3px solid var(--grey-dark); outline-offset:2px;}
+  [hidden]{display:none !important;}
   .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 
   /* ---------- Crisis strip ---------- */
@@ -134,7 +135,30 @@
   .finder-heading h2{font-size:24px;}
   .finder-heading p{margin:6px 0 20px; color:var(--charcoal); font-size:15px; max-width:640px; line-height:1.55;}
 
-  .search-bar-wrap{position:relative; margin-bottom:16px;}
+  .finder-links{display:flex; flex-wrap:wrap; gap:6px 20px; margin:-12px 0 18px !important;}
+  .link-btn{
+    background:none; border:none; padding:2px 0; cursor:pointer; font-size:14.5px; font-weight:700;
+    color:var(--maroon-dark); text-decoration:underline; text-underline-offset:3px;
+  }
+  .search-row{display:grid; grid-template-columns:1fr 240px 170px; gap:10px; margin-bottom:6px;}
+  .search-bar-wrap{position:relative;}
+  .near-wrap{position:relative;}
+  .near-wrap svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--charcoal); pointer-events:none;}
+  #near-input{
+    width:100%; padding:14px 14px 14px 38px; border-radius:12px; border:1px solid var(--line);
+    background:var(--white); box-shadow:var(--shadow); font-size:16px; font-family:inherit; color:var(--ink);
+  }
+  #near-input::placeholder{color:#767676;}
+  #near-input[aria-invalid="true"]{border-color:var(--maroon);}
+  #within-select{
+    width:100%; height:100%; padding:12px 32px 12px 12px; border-radius:12px; border:1px solid var(--line);
+    background:var(--white) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%235F5E5E" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right 12px center;
+    background-size:14px; appearance:none; font-size:15px; font-family:inherit; color:var(--ink); box-shadow:var(--shadow);
+  }
+  #within-select:disabled{color:#8B8B8B; background-color:var(--page); box-shadow:none;}
+  .near-status{min-height:20px; margin:0 0 12px; font-size:13px; color:var(--charcoal);}
+  .near-status button{background:none; border:none; padding:0 0 0 6px; color:var(--maroon-dark); font-weight:700; cursor:pointer; text-decoration:underline; font-size:13px;}
+  .near-status.error{color:var(--maroon-dark); font-weight:600;}
   .search-bar-wrap svg{position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--charcoal); pointer-events:none;}
   #search-input{
     width:100%;
@@ -279,6 +303,7 @@
     padding:4px 2px;
   }
   .toast{font-size:13px; color:var(--maroon-dark); font-weight:600; min-height:1em;}
+  .toast:empty{display:none;}
 
   /* ---------- Results ---------- */
   .results{display:grid; grid-template-columns:repeat(2, 1fr); gap:18px; padding-bottom:60px;}
@@ -313,7 +338,16 @@
 
   .setting-row{display:flex; gap:14px; margin:8px 0 2px;}
   .setting-item{display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--charcoal);}
-  .setting-item.off{opacity:.35;}
+  .distance{font-weight:700; color:var(--maroon-dark); white-space:nowrap;}
+  button.term{
+    font-family:inherit; cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px;
+  }
+  .type-pill.term{border:none;}
+  .term-def{
+    margin:8px 0 2px; padding:9px 12px; font-size:13px; line-height:1.5; color:var(--ink);
+    background:var(--page); border-left:3px solid var(--maroon); border-radius:6px;
+  }
+  .term-def b{color:var(--maroon-dark);}
   .setting-ask{font-size:12.5px; color:var(--charcoal); font-style:italic;}
 
   .tags{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px;}
@@ -349,6 +383,46 @@
   }
   .empty-state h3{color:var(--maroon-dark); margin-bottom:8px; font-size:19px;}
   .empty-state p{max-width:520px; margin:0 auto; line-height:1.6;}
+  .suggestions{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:16px 0 14px;}
+  .suggestions button{
+    border:1px solid var(--maroon); background:var(--white); color:var(--maroon-dark); font-weight:700;
+    font-size:13.5px; padding:8px 14px; border-radius:20px; cursor:pointer;
+  }
+  .suggestions button:hover{background:var(--maroon-tint);}
+
+  .sticky-bar{
+    position:fixed; top:0; left:0; right:0; z-index:30; background:var(--white);
+    border-bottom:1px solid var(--line); box-shadow:0 6px 18px -10px rgba(0,0,0,.35);
+    transform:translateY(calc(-100% - 30px)); visibility:hidden; transition:transform .2s ease, visibility .2s;
+    padding:8px 24px;
+  }
+  .sticky-bar.show{transform:none; visibility:visible;}
+  .sticky-inner{max-width:1032px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+  .sticky-count{font-size:14px; color:var(--charcoal);}
+  .sticky-count strong{color:var(--maroon-dark);}
+  .sticky-actions{display:flex; gap:8px;}
+
+  .info-dialog{
+    width:min(680px, calc(100vw - 32px)); max-height:min(86vh, 900px); padding:0; border:none;
+    border-radius:var(--radius); box-shadow:0 24px 60px -20px rgba(0,0,0,.5); color:var(--ink);
+  }
+  .info-dialog::backdrop{background:rgba(28,28,28,.55);}
+  .dialog-head{
+    position:sticky; top:0; background:var(--maroon); color:var(--white);
+    display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 22px;
+  }
+  .dialog-head h2{color:var(--white); font-size:19px;}
+  .dialog-close{background:none; border:none; color:var(--white); font-size:28px; line-height:1; cursor:pointer; padding:2px 8px;}
+  .dialog-body{padding:18px 24px 24px; font-size:14.5px; line-height:1.6;}
+  .dialog-body h3{font-size:15.5px; color:var(--maroon-dark); margin:18px 0 6px;}
+  .dialog-body > h3:first-child{margin-top:0;}
+  .dialog-body ul{margin:0; padding-left:20px;}
+  .dialog-body li{margin-bottom:5px;}
+  .dialog-body dl{margin:0;}
+  .dialog-body dt{font-weight:700; margin-top:10px;}
+  .dialog-body dd{margin:2px 0 0;}
+  .dialog-lede{margin:0 0 4px;}
+  .dialog-note{margin:18px 0 0; padding:10px 12px; background:var(--page); border-radius:8px; font-size:13.5px;}
 
   footer{background:var(--ink); color:rgba(255,255,255,.78); padding:28px 24px 34px; font-size:13px; line-height:1.7;}
   footer .footer-cols{display:grid; grid-template-columns:1fr 1fr; gap:24px 48px; padding:0; max-width:1032px;}
@@ -362,6 +436,8 @@
 
   @media (max-width: 880px){
     .filters-chips{grid-template-columns:1fr;}
+    .search-row{grid-template-columns:1fr 1fr;}
+    .search-row .search-bar-wrap{grid-column:1 / -1;}
     .filters-selects{grid-template-columns:1fr 1fr;}
     .results{grid-template-columns:1fr;}
     .filters-toggle{display:flex;}
@@ -378,6 +454,10 @@
     .crisis .crisis-more{margin-left:0;}
     .collab, .disclaimer{padding:20px 18px;}
     footer .footer-cols{grid-template-columns:1fr;}
+    .contact-row a{padding:8px 0;}
+    .save-btn{padding:8px 12px;}
+    .chip label{padding:8px 13px;}
+    .sticky-bar{padding:8px 14px;}
   }
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
@@ -387,7 +467,8 @@
     body{background:var(--white);}
     .site-header, .collab, .disclaimer, .finder-heading, .search-bar-wrap,
     .filters, .filters-toggle, .toolbar, .reset-link, .save-btn, button.tag.more,
-    .crisis .crisis-more, footer, .toast{display:none !important;}
+    .crisis .crisis-more, footer, .toast, .search-row, .near-status, .sticky-bar,
+    .finder-links, .info-dialog, .term-def{display:none !important;}
     .print-only{display:block;}
     .crisis{background:none; color:var(--ink); border-bottom:1px solid var(--ink); padding:0 0 8px;}
     .crisis a{color:var(--ink);}
@@ -424,7 +505,7 @@
   </div>
 </header>
 
-<div class="wrap">
+<main class="wrap" id="main">
   <section class="collab" aria-labelledby="collab-heading">
     <h2 id="collab-heading">Supporting a student's mental health is a group project</h2>
     <p>Students are safer and better supported when families, school counselors, and outside clinicians all work together. This directory is one part of that team, not a replacement for it.</p>
@@ -442,13 +523,36 @@
   <div class="finder-heading">
     <h2>Find a clinician</h2>
     <p>Search by name, city, insurance, or keyword, or combine any of the filters below. Please verify credentials, availability, and insurance directly with each practice.</p>
+    <p class="finder-links">
+      <button type="button" class="link-btn" data-open="terms-dialog">What do these terms mean?</button>
+      <button type="button" class="link-btn" data-open="questions-dialog">Questions to ask when you call</button>
+    </p>
   </div>
 
-  <div class="search-bar-wrap">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <label for="search-input" class="sr-only">Search the directory</label>
-    <input type="search" id="search-input" placeholder="Try &quot;anxiety teens&quot; or &quot;Cigna Decatur&quot;" autocomplete="off">
+  <div class="search-row" id="search-row">
+    <div class="search-bar-wrap">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <label for="search-input" class="sr-only">Search the directory</label>
+      <input type="search" id="search-input" placeholder="Try &quot;anxiety teens&quot; or &quot;Cigna Decatur&quot;" autocomplete="off">
+    </div>
+    <div class="near-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12z"/><circle cx="12" cy="10" r="2.4"/></svg>
+      <label for="near-input" class="sr-only">Your ZIP code, to show the nearest providers first</label>
+      <input type="text" id="near-input" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="Your ZIP: nearest first">
+    </div>
+    <div class="within-wrap">
+      <label for="within-select" class="sr-only">How far</label>
+      <select id="within-select" disabled>
+        <option value="">Any distance</option>
+        <option value="5">Within 5 miles</option>
+        <option value="10">Within 10 miles</option>
+        <option value="15">Within 15 miles</option>
+        <option value="25">Within 25 miles</option>
+        <option value="50">Within 50 miles</option>
+      </select>
+    </div>
   </div>
+  <p class="near-status" id="near-status" aria-live="polite"></p>
 
   <button type="button" class="filters-toggle" id="filters-toggle" aria-expanded="false" aria-controls="filters">
     <span id="filters-toggle-label">Filters</span>
@@ -523,13 +627,14 @@
     </div>
   </div>
 
-  <div class="results-bar">
+  <div class="results-bar" id="results-bar">
     <div class="result-count" aria-live="polite" aria-atomic="true"><strong id="result-count">0</strong> <span id="result-noun">providers</span> <span id="result-scope">match your filters</span></div>
     <div class="toolbar">
       <span class="toast" id="toast" aria-live="polite"></span>
       <button type="button" class="tool-btn" id="mylist-btn" aria-pressed="false">
         <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true"><path d="M12 17.3 18.2 21l-1.6-7L22 9.2l-7.2-.6L12 2 9.2 8.6 2 9.2 7.4 14l-1.6 7z"/></svg><span>My list (<span id="mylist-count">0</span>)</span>
       </button>
+      <button type="button" class="tool-btn" id="email-btn" hidden>Email my list</button>
       <button type="button" class="tool-btn" id="copy-btn">Copy link to these results</button>
       <button type="button" class="tool-btn" id="print-btn">Print</button>
       <button type="button" class="reset-link" id="reset-btn">Reset all</button>
@@ -538,7 +643,60 @@
 
   <p class="print-only" id="print-title"></p>
   <div class="results" id="results"></div>
+</main>
+
+<div class="sticky-bar" id="sticky-bar" aria-hidden="true">
+  <div class="sticky-inner">
+    <span class="sticky-count"><strong id="sticky-count">0</strong> <span id="sticky-noun">providers</span><span id="sticky-near"></span></span>
+    <span class="sticky-actions">
+      <button type="button" class="tool-btn" id="sticky-filters" tabindex="-1">Search and filters</button>
+      <button type="button" class="tool-btn" id="sticky-top" tabindex="-1">Back to top</button>
+    </span>
+  </div>
 </div>
+
+<dialog class="info-dialog" id="terms-dialog" aria-labelledby="terms-title">
+  <div class="dialog-head">
+    <h2 id="terms-title">What these terms mean</h2>
+    <button type="button" class="dialog-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="dialog-body" id="terms-body"></div>
+</dialog>
+
+<dialog class="info-dialog" id="questions-dialog" aria-labelledby="questions-title">
+  <div class="dialog-head">
+    <h2 id="questions-title">Questions to ask when you call</h2>
+    <button type="button" class="dialog-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="dialog-body">
+    <p class="dialog-lede">A short call can tell you a lot about whether a provider is a good fit. Before you call, have your insurance card, your student's age and grade, a sentence or two about what's going on, and the times that work for your family.</p>
+    <h3>Availability</h3>
+    <ul>
+      <li>Are you accepting new clients? How soon could we get a first appointment?</li>
+      <li>Do you offer in-person visits, virtual visits, or both? Do you have after-school or evening times?</li>
+      <li>Is there a waitlist, and can you recommend someone else if the wait is long?</li>
+    </ul>
+    <h3>Fit</h3>
+    <ul>
+      <li>Do you often work with students this age and with concerns like ours?</li>
+      <li>What approach do you usually use, and how will we know if it's helping?</li>
+      <li>What does the first appointment look like? Do you offer a brief phone consultation first?</li>
+    </ul>
+    <h3>Cost</h3>
+    <ul>
+      <li>Are you in network with our insurance plan? If not, do you provide a superbill for reimbursement?</li>
+      <li>What is the fee per session? Do you offer a sliding scale?</li>
+      <li>What is your cancellation policy?</li>
+    </ul>
+    <h3>Working together</h3>
+    <ul>
+      <li>How do you involve parents, and what stays private between you and our student?</li>
+      <li>With our permission, will you coordinate with our school counselor?</li>
+      <li>What should we do if there's an urgent concern between appointments?</li>
+    </ul>
+    <p class="dialog-note">It's okay if the first provider you call isn't the right fit. Your grade-level school counselor can help you think through options.</p>
+  </div>
+</dialog>
 
 <footer>
   <div class="wrap footer-cols">
@@ -664,7 +822,7 @@ __DIRECTORY_META_JSON__
   buildMulti('gender', [{ options: [['Female','Female'],['Male','Male'],['Non-Binary','Non-binary']].map(([v,t]) => ({value:v, text:t})) }]);
 
   // ---------- state ----------
-  const blank = () => ({ q:'', concerns:[], match:'all', care:[], type:[], ins:[], area:[], ages:[], setting:'either', gender:[], mine:false });
+  const blank = () => ({ q:'', concerns:[], match:'all', care:[], type:[], ins:[], area:[], ages:[], setting:'either', gender:[], near:'', within:'', mine:false });
   let state = blank();
 
   function stateToHash(){
@@ -675,6 +833,8 @@ __DIRECTORY_META_JSON__
     if (state.care.length) p.set('care', state.care.join('|'));
     MULTI_KEYS.forEach(k => { if (state[k].length) p.set(k, state[k].join('|')); });
     if (state.setting !== 'either') p.set('setting', state.setting);
+    if (state.near) p.set('near', state.near);
+    if (state.near && state.within) p.set('within', state.within);
     const s = p.toString().replace(/\+/g, '%20');
     return s ? '#' + s : '';
   }
@@ -687,6 +847,8 @@ __DIRECTORY_META_JSON__
     s.care = (p.get('care') || '').split('|').filter(Boolean);
     MULTI_KEYS.forEach(k => s[k] = (p.get(k) || '').split('|').filter(Boolean));
     s.setting = ['inperson','virtual'].includes(p.get('setting')) ? p.get('setting') : 'either';
+    s.near = /^\d{5}$/.test(p.get('near') || '') ? p.get('near') : '';
+    s.within = /^\d+$/.test(p.get('within') || '') ? p.get('within') : '';
     s.mine = state.mine;
     return s;
   }
@@ -698,6 +860,9 @@ __DIRECTORY_META_JSON__
     MULTI_KEYS.forEach(k => multis[k].sync());
     document.querySelectorAll('#setting-segmented button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === state.setting)));
     $('mylist-btn').setAttribute('aria-pressed', String(state.mine));
+    if (document.activeElement !== $('near-input')) $('near-input').value = state.near;
+    $('within-select').value = state.within;
+    $('within-select').disabled = !nearPoint();
   }
   function update(){
     const h = stateToHash();
@@ -740,7 +905,127 @@ __DIRECTORY_META_JSON__
   });
   $('print-btn').addEventListener('click', () => window.print());
 
+  // ---------- near me ----------
+  const nearPoint = () => (state.near && META.zips[state.near]) || null;
+  function milesBetween(a, b){
+    const R = 3958.8, rad = x => x * Math.PI / 180;
+    const dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]);
+    const h = Math.sin(dLat/2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon/2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  const distanceTo = r => (nearPoint() && r.loc) ? milesBetween(nearPoint(), r.loc) : null;
+  $('near-input').addEventListener('input', e => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 5);
+    e.target.value = v;
+    if (v.length === 5 || v.length === 0){
+      state.near = v;
+      if (!v) state.within = '';
+      syncControls(); update();
+    } else if (state.near){
+      state.near = ''; state.within = ''; syncControls(); update();
+    }
+  });
+  $('within-select').addEventListener('change', e => { state.within = e.target.value; update(); });
+  $('near-status').addEventListener('click', e => {
+    if (e.target.closest('.near-clear')){ state.near = ''; state.within = ''; syncControls(); update(); $('near-input').focus(); }
+  });
+
+  // ---------- plain-language terms ----------
+  const GLOSSARY = {
+    'Therapist': 'A licensed counselor, clinical social worker, or marriage and family therapist (such as an LPC, LCSW, or LMFT) who provides talk therapy. Therapists do not prescribe medication.',
+    'Psychologist': 'A clinician with a doctoral degree (Ph.D. or Psy.D.) who provides therapy and can give psychological tests. Psychologists in Georgia do not prescribe medication.',
+    'Psychiatrist': 'A medical doctor who diagnoses mental health conditions and can prescribe and manage medication. Many psychiatrists focus mainly on medication rather than weekly therapy.',
+    'Testing/Evaluation': 'Offers evaluations that look at learning, attention, development, or emotional concerns, and writes a report with recommendations, such as for school accommodations.',
+    'Educational Consultant': 'Helps families find and compare schools, programs, or treatment placements. Not a treatment provider.',
+    'Psychoeducational Testing': 'An evaluation of how a student learns and thinks, often used to identify ADHD or learning differences and to support requests for school accommodations.',
+    'Medication Management': 'Evaluating whether medication could help, prescribing it, and adjusting it over regular follow-up visits.',
+    'Intensive Outpatient (IOP)': 'A structured treatment program, usually a few hours a day, several days a week. Students live at home and often keep attending school.',
+    'Partial Hospitalization (PHP)': 'A more intensive day program, usually most of the day, five days a week, while living at home. A step between IOP and residential care.',
+    'Residential Treatment': 'A live-in program with care around the clock, usually lasting weeks to months.',
+    'Crisis Intervention': 'Short-term help focused on safety and stability during a mental health crisis.',
+    'Free Crisis or Support Line': 'Free phone, text, or chat support. Helpful in the moment, but not ongoing therapy.',
+    'Play Therapy': 'Therapy for younger children that uses play to help them express feelings and build coping skills.',
+    'Art Therapy': 'Therapy that uses drawing, painting, and other art-making to help express feelings and work through challenges.',
+    'Bilingual Services': 'Therapy is offered in at least one language besides English. Ask the provider which languages.',
+    'Summer Camps & Programs': 'Seasonal programs, such as social skills camps, that build skills in a group setting.'
+  };
+  const PAY_TERMS = {
+    'In network': 'The provider has a contract with your insurance plan, so you usually pay only a copay or coinsurance.',
+    'Out of network (superbill)': 'The provider isn\u2019t contracted with your plan. You pay the provider, and they give you a detailed receipt (a superbill) you can send to your insurance for possible partial reimbursement.',
+    'Private pay': 'The provider doesn\u2019t bill insurance. You pay the full fee yourself.',
+    'Sliding scale': 'Fees adjusted based on household income. Ask what documentation is needed.',
+    'Medicaid / PeachCare': 'Georgia\u2019s public health coverage programs for eligible children and families. PeachCare for Kids is Georgia\u2019s children\u2019s health insurance program.'
+  };
+  (function buildTerms(){
+    const dl = obj => '<dl>' + Object.entries(obj).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('') + '</dl>';
+    const types = ['Therapist','Psychologist','Psychiatrist','Testing/Evaluation','Educational Consultant'];
+    const care = Object.keys(GLOSSARY).filter(k => !types.includes(k));
+    const pick = keys => Object.fromEntries(keys.map(k => [k, GLOSSARY[k]]));
+    $('terms-body').innerHTML =
+      '<h3>Provider types</h3>' + dl(pick(types)) +
+      '<h3>Types of care</h3>' + dl(pick(care)) +
+      '<h3>Insurance and payment</h3>' + dl(PAY_TERMS) +
+      '<p class="dialog-note">Tip: on any provider card, tap an underlined label to see what it means.</p>';
+  })();
+
+  function openDialog(id){
+    const d = $(id);
+    if (!d) return;
+    if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+  }
+  document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openDialog(b.dataset.open)));
+  document.querySelectorAll('.info-dialog').forEach(d => {
+    d.querySelector('.dialog-close').addEventListener('click', () => d.close ? d.close() : d.removeAttribute('open'));
+    d.addEventListener('click', e => { if (e.target === d) d.close(); });
+  });
+  const DIALOG_HASH = { '#questions': 'questions-dialog', '#terms': 'terms-dialog' };
+
+  // ---------- email my list ----------
+  $('email-btn').addEventListener('click', async () => {
+    const list = DATA.filter(r => saved.has(r.name)).sort((a,b) => a.name.localeCompare(b.name));
+    const site = location.origin + location.pathname;
+    const lines = ['My saved providers from the Woodward Academy Family Counseling Referral Directory:', ''];
+    list.forEach((r, i) => {
+      lines.push(`${i + 1}. ${r.displayName || r.name} (${(r.providerTypes || [r.providerType]).join(', ')})`);
+      if (r.phone) lines.push(`   Phone: ${r.phone}`);
+      if (r.website) lines.push(`   Website: ${r.website}`);
+      if (r.address) lines.push(`   Address: ${r.address}`);
+      lines.push(`   Insurance: ${r.insurance || 'Not listed. Call to ask.'}`);
+      lines.push('');
+    });
+    lines.push('Insurance, availability, and fees change often. Please confirm directly with each provider.', '');
+    lines.push('Questions to ask when you call: ' + site + '#questions');
+    lines.push('Full directory: ' + site);
+    const body = lines.join('\n');
+    const subject = 'My saved counseling providers';
+    const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    if (url.length <= 1900){ location.href = url; return; }
+    // Long lists can be too big for some email apps, so copy the list instead.
+    try { await navigator.clipboard.writeText(body); toast('List copied. Paste it into the email.'); }
+    catch(e){ window.prompt('Copy your list:', body); }
+    location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('(Paste your list here.)')}`;
+  });
+
+  // ---------- sticky bar ----------
+  const sticky = $('sticky-bar');
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver(([entry]) => {
+      const show = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+      sticky.classList.toggle('show', show);
+      sticky.setAttribute('aria-hidden', String(!show));
+      sticky.querySelectorAll('button').forEach(b => b.tabIndex = show ? 0 : -1);
+    }).observe($('results-bar'));
+  }
+  $('sticky-filters').addEventListener('click', () => {
+    const t = $('filters-toggle');
+    if (getComputedStyle(t).display !== 'none' && t.getAttribute('aria-expanded') !== 'true') t.click();
+    document.querySelector('.finder-heading').scrollIntoView();
+    $('search-input').focus({ preventScroll: true });
+  });
+  $('sticky-top').addEventListener('click', () => window.scrollTo(0, 0));
+
   window.addEventListener('hashchange', () => {
+    if (DIALOG_HASH[location.hash]){ openDialog(DIALOG_HASH[location.hash]); return; }
     state = hashToState(); syncControls(); render();
     if (location.hash) document.querySelector('.finder-heading').scrollIntoView();
   });
@@ -757,6 +1042,19 @@ __DIRECTORY_META_JSON__
       if (again) again.focus();
       return;
     }
+    const term = e.target.closest('button.term');
+    if (term){
+      const cardEl = term.closest('.card');
+      const box = cardEl.querySelector('.term-def');
+      const same = !box.hidden && box.dataset.term === term.dataset.term;
+      cardEl.querySelectorAll('button.term').forEach(b => b.setAttribute('aria-expanded', 'false'));
+      if (same){ box.hidden = true; return; }
+      box.dataset.term = term.dataset.term;
+      box.innerHTML = `<b>${esc(term.dataset.term)}:</b> ${esc(GLOSSARY[term.dataset.term])}`;
+      box.hidden = false;
+      term.setAttribute('aria-expanded', 'true');
+      return;
+    }
     const more = e.target.closest('button.tag.more');
     if (more){
       const box = more.parentElement;
@@ -768,13 +1066,17 @@ __DIRECTORY_META_JSON__
   // ---------- matching ----------
   function matchesSearch(r, q){
     if (!q) return true;
-    const hay = [r.name, (r.cities||[]).join(' '), (r.regions||[]).join(' '), r.address,
+    const hay = [r.name, r.displayName, (r.cities||[]).join(' '), (r.regions||[]).join(' '), r.address,
       (r.concerns||[]).join(' '), (r.care||[]).join(' '), r.insurance, (r.insuranceCats||[]).join(' '),
       (r.providerTypes || [r.providerType]).join(' '), r.ages, (r.agesBuckets||[]).join(' '), r.approaches].filter(Boolean).join(' ').toLowerCase();
     return q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
   }
-  function matches(r){
+  function matches(r, st){
+    const state = st || window.__dirState;
     if (state.mine && !saved.has(r.name)) return false;
+    if (state.near && state.within && META.zips[state.near]){
+      if (!r.loc || milesBetween(META.zips[state.near], r.loc) > +state.within) return false;
+    }
     if (state.concerns.length){
       const rs = r.concerns || [];
       const ok = state.match === 'any' ? state.concerns.some(c => rs.includes(c)) : state.concerns.every(c => rs.includes(c));
@@ -817,19 +1119,22 @@ __DIRECTORY_META_JSON__
       ...(r.concerns||[]).map(t => ({t, care:false}))
     ];
     const SHOW = 6;
-    const tagHtml = tags.map((x, i) =>
-      `<span class="tag${x.care ? ' care' : ''}"${i >= SHOW ? ' hidden' : ''}>${esc(x.t)}</span>`).join('') +
+    const tagHtml = tags.map((x, i) => GLOSSARY[x.t]
+      ? `<button type="button" class="tag care term" data-term="${esc(x.t)}" aria-expanded="false"${i >= SHOW ? ' hidden' : ''}>${esc(x.t)}</button>`
+      : `<span class="tag${x.care ? ' care' : ''}"${i >= SHOW ? ' hidden' : ''}>${esc(x.t)}</span>`).join('') +
       (tags.length > SHOW ? `<button type="button" class="tag more" aria-label="Show ${tags.length - SHOW} more specialties">+${tags.length - SHOW} more</button>` : '');
 
     const where = r.address || (r.cities||[]).join(', ') || 'Location available on request';
-    const metas = [`<div class="meta-line">${icon.pin}<span>${esc(where)}</span></div>`];
+    const d = distanceTo(r);
+    const dist = d == null ? (nearPoint() ? ' <span class="distance">Distance not available</span>' : '')
+      : ` <span class="distance">${d < 1 ? 'Under 1 mi' : 'About ' + Math.round(d) + ' mi'}${r.locApprox ? ' (estimated from city)' : ''}</span>`;
+    const metas = [`<div class="meta-line">${icon.pin}<span>${esc(where)}${dist}</span></div>`];
     const who = [r.ages ? 'Ages: ' + r.ages : null, (r.gender||[]).length ? 'Clinicians: ' + r.gender.join(', ') : null].filter(Boolean).join('. ');
     if (who) metas.push(`<div class="meta-line">${icon.people}<span>${esc(who)}</span></div>`);
 
     const setting = (!r.inPerson && !r.virtual)
       ? `<span class="setting-ask">Contact the practice about setting</span>`
-      : `<span class="setting-item ${r.inPerson ? '' : 'off'}">${icon.check} In person</span>
-         <span class="setting-item ${r.virtual ? '' : 'off'}">${icon.check} Virtual</span>`;
+      : `<span class="setting-item">${icon.check} ${r.inPerson && r.virtual ? 'In person and virtual' : r.inPerson ? 'In person only' : 'Virtual only'}</span>`;
 
     const ins = r.insurance ? esc(r.insurance) : `<span class="unknown">Not listed. Call to ask about your plan.</span>`;
     const insNote = r.insurance ? `<span class="fact-note">Policies change often. Confirm coverage with the provider.</span>` : '';
@@ -848,14 +1153,17 @@ __DIRECTORY_META_JSON__
     <article class="card${isSaved ? ' saved' : ''}">
       <div class="card-head">
         <div>
-          <h3>${esc(r.name)}</h3>
-          ${(r.providerTypes || [r.providerType]).filter(Boolean).map(t => `<span class="type-pill">${esc(t)}</span>`).join(' ')}
+          <h3>${esc(r.displayName || r.name)}</h3>
+          ${(r.providerTypes || [r.providerType]).filter(Boolean).map(t => GLOSSARY[t]
+            ? `<button type="button" class="type-pill term" data-term="${esc(t)}" aria-expanded="false">${esc(t)}</button>`
+            : `<span class="type-pill">${esc(t)}</span>`).join(' ')}
         </div>
-        <button type="button" class="save-btn" data-name="${esc(r.name)}" aria-pressed="${isSaved}" aria-label="${isSaved ? 'Remove' : 'Save'} ${esc(r.name)} ${isSaved ? 'from' : 'to'} my list">${icon.star} ${isSaved ? 'Saved' : 'Save'}</button>
+        <button type="button" class="save-btn" data-name="${esc(r.name)}" aria-pressed="${isSaved}" aria-label="${isSaved ? 'Remove' : 'Save'} ${esc(r.displayName || r.name)} ${isSaved ? 'from' : 'to'} my list">${icon.star} ${isSaved ? 'Saved' : 'Save'}</button>
       </div>
       ${metas.join('')}
       <div class="setting-row">${setting}</div>
       <div class="tags">${tagHtml}</div>
+      <div class="term-def" hidden></div>
       <div class="facts">${facts.join('')}</div>
       <div class="card-footer">
         <div class="contact-row">${contact.join('')}</div>
@@ -870,8 +1178,55 @@ __DIRECTORY_META_JSON__
       (state.setting !== 'either' ? 1 : 0);
   }
 
+  // Ways to loosen the current search, for the "no results" message.
+  function loosenOptions(){
+    const opts = [];
+    const add = (label, change) => {
+      const st = JSON.parse(JSON.stringify(state));
+      change(st);
+      opts.push({ label, change, count: DATA.filter(r => matches(r, st)).length });
+    };
+    const multiLabel = { type:'', ins:'', area:'', ages:'', gender:'' };
+    if (state.q) add(`Clear the search \u201c${state.q}\u201d`, st => st.q = '');
+    if (state.within) add('Any distance', st => st.within = '');
+    if (state.concerns.length > 1 && state.match === 'all') add('Match any concern', st => st.match = 'any');
+    state.concerns.forEach(c => add(`Remove \u201c${c}\u201d`, st => st.concerns = st.concerns.filter(x => x !== c)));
+    state.care.forEach(c => add(`Remove \u201c${c}\u201d`, st => st.care = st.care.filter(x => x !== c)));
+    MULTI_KEYS.forEach(k => state[k].forEach(v => {
+      const shown = v.replace(/^[rc]:/, '');
+      add(`Remove \u201c${shown}\u201d`, st => st[k] = st[k].filter(x => x !== v));
+    }));
+    if (state.setting !== 'either') add(`Remove \u201c${state.setting === 'inperson' ? 'In person' : 'Virtual'}\u201d`, st => st.setting = 'either');
+    return opts.filter(o => o.count > 0).sort((a, b) => b.count - a.count).slice(0, 3);
+  }
+
   function render(){
-    const list = DATA.filter(matches).sort((a,b)=>a.name.localeCompare(b.name));
+    window.__dirState = state;
+    const np = nearPoint();
+    const list = DATA.filter(r => matches(r, state)).sort((a, b) => {
+      if (np){
+        const da = distanceTo(a), db = distanceTo(b);
+        if (da != null && db != null && da !== db) return da - db;
+        if ((da == null) !== (db == null)) return da == null ? 1 : -1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+    const status = $('near-status');
+    status.classList.remove('error');
+    $('near-input').removeAttribute('aria-invalid');
+    if (np){
+      status.innerHTML = `Nearest first from ${esc(state.near)}. Distances are approximate, and providers without a listed address appear last${state.within ? ' (or are hidden when a distance is set)' : ''}.<button type="button" class="near-clear">Clear</button>`;
+    } else if (state.near){
+      status.innerHTML = `We couldn\u2019t find ZIP code ${esc(state.near)}. Enter a Georgia ZIP code.<button type="button" class="near-clear">Clear</button>`;
+      status.classList.add('error');
+      $('near-input').setAttribute('aria-invalid', 'true');
+    } else {
+      status.textContent = '';
+    }
+    $('email-btn').hidden = saved.size === 0;
+    $('sticky-count').textContent = list.length;
+    $('sticky-noun').textContent = list.length === 1 ? ' provider' : ' providers';
+    $('sticky-near').textContent = np ? `, nearest to ${state.near}` : '';
     $('result-count').textContent = list.length;
     $('result-noun').textContent = list.length === 1 ? 'provider' : 'providers';
     $('result-scope').textContent = state.mine ? 'in my list' : 'match your filters';
@@ -885,15 +1240,31 @@ __DIRECTORY_META_JSON__
     if (!list.length){
       container.innerHTML = state.mine && !saved.size
         ? `<div class="empty-state"><h3>Your list is empty</h3><p>Select Save on any provider to add it here. Your list stays on this device so you can compare, print, or bring it to a conversation with your counselor.</p></div>`
-        : `<div class="empty-state"><h3>No providers match all of those filters</h3><p>Try removing a filter or switching concerns to Match any. Your grade-level school counselor may also know of options not yet listed here.</p></div>`;
+        : emptyState();
+      container.querySelectorAll('.suggestions button').forEach((b, i) => b.addEventListener('click', () => {
+        const opt = window.__loosen[i];
+        opt.change(state); syncControls(); update();
+      }));
       return;
     }
     container.innerHTML = list.map(card).join('');
   }
 
+  function emptyState(){
+    const opts = loosenOptions();
+    window.__loosen = opts;
+    const buttons = opts.map(o => `<button type="button">${esc(o.label)} <span aria-hidden="true">\u00b7</span> ${o.count} provider${o.count === 1 ? '' : 's'}</button>`).join('');
+    return `<div class="empty-state"><h3>No providers match all of those filters</h3>` +
+      (buttons
+        ? `<p>These changes would bring back results:</p><div class="suggestions">${buttons}</div>`
+        : `<p>Try <button type="button" class="link-btn" onclick="document.getElementById('reset-btn').click()">resetting all filters</button>.</p>`) +
+      `<p>Your grade-level school counselor may also know of options not listed here.</p></div>`;
+  }
+
   state = hashToState();
   syncControls();
   render();
+  if (DIALOG_HASH[location.hash]) openDialog(DIALOG_HASH[location.hash]);
 })();
 
 // Keep the header logo exactly as tall as the title and subtitle together.
