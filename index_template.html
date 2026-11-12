@@ -223,18 +223,33 @@
   .mini-toggle button + button{border-left:1px solid var(--line);}
   .mini-toggle button[aria-pressed="true"]{background:var(--ink); color:var(--white);}
 
-  select{
-    width:100%;
-    padding:11px 34px 11px 12px;
-    border-radius:10px;
-    border:1px solid var(--line);
-    background:var(--white) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%235F5E5E" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right 12px center;
-    background-size:14px;
-    appearance:none;
-    font-size:14.5px;
-    color:var(--ink);
-    font-family:inherit;
+  .multi{position:relative;}
+  .multi-btn{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--white);
+    font-size:14.5px; color:var(--ink); cursor:pointer; text-align:left;
   }
+  .multi-btn[aria-expanded="true"]{border-color:var(--grey-dark);}
+  .multi-btn[aria-expanded="true"] svg{transform:rotate(180deg);}
+  .multi-btn svg{flex:none; color:var(--charcoal);}
+  .multi-value{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .multi.has-value .multi-btn{border-color:var(--maroon); background:var(--maroon-tint);}
+  .multi.has-value .multi-value{color:var(--maroon-dark); font-weight:600;}
+  .multi-panel{
+    position:absolute; z-index:20; top:calc(100% + 6px); left:0; right:0; min-width:240px;
+    background:var(--white); border:1px solid var(--line); border-radius:10px;
+    box-shadow:0 12px 32px -8px rgba(0,0,0,.28);
+  }
+  .multi-list{max-height:280px; overflow-y:auto; padding:6px 0;}
+  .multi-group{font-size:12px; font-weight:700; color:var(--maroon-dark); padding:10px 14px 4px;}
+  .multi-opt{display:flex; align-items:center; gap:10px; padding:7px 14px; font-size:14px; cursor:pointer; line-height:1.35;}
+  .multi-opt:hover{background:var(--page);}
+  .multi-opt input{width:16px; height:16px; margin:0; flex:none; accent-color:var(--maroon);}
+  .multi-opt.region{font-weight:600;}
+  .multi-foot{display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding:8px 10px;}
+  .multi-foot button{border:none; background:none; font-size:13px; font-weight:700; cursor:pointer; padding:6px 8px; border-radius:6px;}
+  .multi-foot .multi-clear{color:var(--maroon-dark); text-decoration:underline; text-underline-offset:3px;}
+  .multi-foot .multi-done{background:var(--maroon); color:var(--white); padding:6px 14px;}
   .segmented{display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--white);}
   .segmented button{
     flex:1; border:none; background:var(--white); padding:10.5px 6px; font-size:13.5px;
@@ -336,7 +351,7 @@
   .empty-state p{max-width:520px; margin:0 auto; line-height:1.6;}
 
   footer{background:var(--ink); color:rgba(255,255,255,.78); padding:28px 24px 34px; font-size:13px; line-height:1.7;}
-  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:0;}
+  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:0; max-width:1032px;}
   footer strong{color:var(--white);}
   footer a{color:var(--white);}
 
@@ -456,27 +471,34 @@
     </div>
     <div class="filters-selects">
       <div>
-        <label class="group-label" for="type-select">Provider type</label>
-        <select id="type-select"><option value="">Any type</option></select>
+        <span class="group-label" id="type-label">Provider type</span>
+        <div class="multi" id="type-multi" data-key="type" data-any="Any type">
+          <button type="button" class="multi-btn" aria-haspopup="true" aria-expanded="false" aria-labelledby="type-label type-value"><span class="multi-value" id="type-value">Any type</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="multi-panel" role="group" aria-labelledby="type-label" hidden></div>
+        </div>
       </div>
       <div>
-        <label class="group-label" for="ins-select">Insurance or payment</label>
-        <select id="ins-select"><option value="">Any</option></select>
+        <span class="group-label" id="ins-label">Insurance or payment</span>
+        <div class="multi" id="ins-multi" data-key="ins" data-any="Any">
+          <button type="button" class="multi-btn" aria-haspopup="true" aria-expanded="false" aria-labelledby="ins-label ins-value"><span class="multi-value" id="ins-value">Any</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="multi-panel" role="group" aria-labelledby="ins-label" hidden></div>
+        </div>
         <p class="hint">Insurance and payment policies change often and may not be current here. Confirm directly with the provider.</p>
         <p class="hint" id="ins-hint" hidden>Practices without a listed insurance plan won't appear in these results.</p>
       </div>
       <div>
-        <label class="group-label" for="area-select">General area</label>
-        <select id="area-select"><option value="">Any area</option></select>
+        <span class="group-label" id="area-label">General area</span>
+        <div class="multi" id="area-multi" data-key="area" data-any="Any area">
+          <button type="button" class="multi-btn" aria-haspopup="true" aria-expanded="false" aria-labelledby="area-label area-value"><span class="multi-value" id="area-value">Any area</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="multi-panel" role="group" aria-labelledby="area-label" hidden></div>
+        </div>
       </div>
       <div>
-        <label class="group-label" for="ages-select">Ages served</label>
-        <select id="ages-select">
-          <option value="">Any age</option>
-          <option value="Children">Children</option>
-          <option value="Teens">Teens</option>
-          <option value="Adults">Adults</option>
-        </select>
+        <span class="group-label" id="ages-label">Ages served</span>
+        <div class="multi" id="ages-multi" data-key="ages" data-any="Any age">
+          <button type="button" class="multi-btn" aria-haspopup="true" aria-expanded="false" aria-labelledby="ages-label ages-value"><span class="multi-value" id="ages-value">Any age</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="multi-panel" role="group" aria-labelledby="ages-label" hidden></div>
+        </div>
       </div>
       <fieldset>
         <legend class="group-label">Setting</legend>
@@ -487,13 +509,11 @@
         </div>
       </fieldset>
       <div>
-        <label class="group-label" for="gender-select">Clinician gender</label>
-        <select id="gender-select">
-          <option value="">No preference</option>
-          <option value="Female">Female</option>
-          <option value="Male">Male</option>
-          <option value="Non-Binary">Non-binary</option>
-        </select>
+        <span class="group-label" id="gender-label">Clinician gender</span>
+        <div class="multi" id="gender-multi" data-key="gender" data-any="No preference">
+          <button type="button" class="multi-btn" aria-haspopup="true" aria-expanded="false" aria-labelledby="gender-label gender-value"><span class="multi-value" id="gender-value">No preference</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="multi-panel" role="group" aria-labelledby="gender-label" hidden></div>
+        </div>
         <p class="hint">Group practices appear under every gender they list. Ask the practice to request a specific clinician.</p>
       </div>
     </div>
@@ -519,7 +539,8 @@
 <footer>
   <div class="wrap">
     <div>Woodward Academy Counseling Department<br>
-    In a mental health crisis, call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline), available 24/7.</div>
+    In a mental health crisis, call or text <a href="tel:988"><strong>988</strong></a> (Suicide &amp; Crisis Lifeline), available 24/7.<br>
+    In an emergency, call <a href="tel:911"><strong>911</strong></a>.</div>
     <div>Directory last updated: <strong id="last-updated">__LAST_UPDATED__</strong><br>Questions, or know of a listing that's out of date? Contact your grade-level school counselor.</div>
   </div>
 </footer>
@@ -567,28 +588,72 @@ __DIRECTORY_META_JSON__
   const concernBox = buildChips('concern-box', uniqSorted(DATA.flatMap(r => r.concerns || [])), 'concern');
   const careBox = buildChips('care-box', uniqSorted(DATA.flatMap(r => r.care || [])), 'care');
 
-  const typeSelect = $('type-select');
-  uniqSorted(DATA.map(r => r.providerType).filter(Boolean)).forEach(t => typeSelect.add(new Option(t, t)));
-
-  const insSelect = $('ins-select');
-  const insPresent = new Set(DATA.flatMap(r => r.insuranceCats || []));
-  META.insurance.filter(l => insPresent.has(l)).forEach(l => insSelect.add(new Option(l, l)));
-
-  const areaSelect = $('area-select');
-  const regionCities = {};
-  Object.entries(META.cityRegion).forEach(([c, reg]) => (regionCities[reg] = regionCities[reg] || []).push(c));
-  META.regions.forEach(reg => {
-    if (!regionCities[reg]) return;
-    const g = document.createElement('optgroup');
-    g.label = reg;
-    const cities = regionCities[reg].slice().sort((a,b)=>a.localeCompare(b));
-    g.appendChild(new Option('All of ' + reg, 'r:' + reg));
-    cities.forEach(c => g.appendChild(new Option(c, 'c:' + c)));
-    areaSelect.appendChild(g);
+  // ---------- multi-select dropdowns ----------
+  // Each dropdown holds checkboxes; picking several shows providers that match ANY of them.
+  const MULTI_KEYS = ['type','ins','area','ages','gender'];
+  const multis = {};
+  function buildMulti(key, groups){
+    const root = $(key + '-multi');
+    const btn = root.querySelector('.multi-btn');
+    const panel = root.querySelector('.multi-panel');
+    const texts = {};
+    let html = '<div class="multi-list">';
+    groups.forEach(g => {
+      if (g.label) html += `<div class="multi-group">${esc(g.label)}</div>`;
+      g.options.forEach(o => {
+        texts[o.value] = o.short || o.text;
+        html += `<label class="multi-opt${o.cls ? ' ' + o.cls : ''}"><input type="checkbox" value="${esc(o.value)}"> ${esc(o.text)}</label>`;
+      });
+    });
+    html += '</div><div class="multi-foot"><button type="button" class="multi-clear">Clear</button><button type="button" class="multi-done">Done</button></div>';
+    panel.innerHTML = html;
+    const open = yes => {
+      Object.values(multis).forEach(m => { if (m !== multis[key]) m.close(); });
+      panel.hidden = !yes; btn.setAttribute('aria-expanded', String(yes));
+    };
+    btn.addEventListener('click', () => open(panel.hidden));
+    panel.addEventListener('change', () => {
+      state[key] = Array.from(panel.querySelectorAll('input:checked')).map(i => i.value);
+      refreshLabel(); update();
+    });
+    panel.querySelector('.multi-clear').addEventListener('click', () => {
+      panel.querySelectorAll('input').forEach(i => i.checked = false);
+      state[key] = []; refreshLabel(); update();
+    });
+    panel.querySelector('.multi-done').addEventListener('click', () => { open(false); btn.focus(); });
+    root.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden){ open(false); btn.focus(); } });
+    function refreshLabel(){
+      const vals = state[key] || [];
+      root.querySelector('.multi-value').textContent = vals.length ? vals.map(v => texts[v] || v).join(', ') : root.dataset.any;
+      root.classList.toggle('has-value', vals.length > 0);
+    }
+    multis[key] = {
+      close: () => { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); },
+      sync: () => { panel.querySelectorAll('input').forEach(i => i.checked = (state[key] || []).includes(i.value)); refreshLabel(); }
+    };
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.multi')) Object.values(multis).forEach(m => m.close());
   });
 
+  buildMulti('type', [{ options: uniqSorted(DATA.flatMap(r => r.providerTypes || [r.providerType]).filter(Boolean)).map(t => ({value:t, text:t})) }]);
+
+  const insPresent = new Set(DATA.flatMap(r => r.insuranceCats || []));
+  buildMulti('ins', [{ options: META.insurance.filter(l => insPresent.has(l)).map(l => ({value:l, text:l})) }]);
+
+  const regionCities = {};
+  Object.entries(META.cityRegion).forEach(([c, reg]) => (regionCities[reg] = regionCities[reg] || []).push(c));
+  buildMulti('area', META.regions.filter(reg => regionCities[reg]).map(reg => ({
+    label: reg,
+    options: [{value:'r:' + reg, text:'All of ' + reg, short:reg, cls:'region'}]
+      .concat(regionCities[reg].slice().sort((a,b)=>a.localeCompare(b)).map(c => ({value:'c:' + c, text:c})))
+  })));
+
+  buildMulti('ages', [{ options: ['Children','Teens','Adults'].map(a => ({value:a, text:a})) }]);
+  buildMulti('gender', [{ options: [['Female','Female'],['Male','Male'],['Non-Binary','Non-binary']].map(([v,t]) => ({value:v, text:t})) }]);
+
   // ---------- state ----------
-  const blank = () => ({ q:'', concerns:[], match:'all', care:[], type:'', ins:'', area:'', ages:'', setting:'either', gender:'', mine:false });
+  const blank = () => ({ q:'', concerns:[], match:'all', care:[], type:[], ins:[], area:[], ages:[], setting:'either', gender:[], mine:false });
   let state = blank();
 
   function stateToHash(){
@@ -597,7 +662,7 @@ __DIRECTORY_META_JSON__
     if (state.concerns.length) p.set('concerns', state.concerns.join('|'));
     if (state.match === 'any') p.set('match', 'any');
     if (state.care.length) p.set('care', state.care.join('|'));
-    ['type','ins','area','ages','gender'].forEach(k => { if (state[k]) p.set(k, state[k]); });
+    MULTI_KEYS.forEach(k => { if (state[k].length) p.set(k, state[k].join('|')); });
     if (state.setting !== 'either') p.set('setting', state.setting);
     const s = p.toString().replace(/\+/g, '%20');
     return s ? '#' + s : '';
@@ -609,7 +674,7 @@ __DIRECTORY_META_JSON__
     s.concerns = (p.get('concerns') || '').split('|').filter(Boolean);
     s.match = p.get('match') === 'any' ? 'any' : 'all';
     s.care = (p.get('care') || '').split('|').filter(Boolean);
-    ['type','ins','area','ages','gender'].forEach(k => s[k] = p.get(k) || '');
+    MULTI_KEYS.forEach(k => s[k] = (p.get(k) || '').split('|').filter(Boolean));
     s.setting = ['inperson','virtual'].includes(p.get('setting')) ? p.get('setting') : 'either';
     s.mine = state.mine;
     return s;
@@ -619,8 +684,7 @@ __DIRECTORY_META_JSON__
     concernBox.querySelectorAll('input').forEach(i => i.checked = state.concerns.includes(i.value));
     careBox.querySelectorAll('input').forEach(i => i.checked = state.care.includes(i.value));
     document.querySelectorAll('.mini-toggle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.match === state.match)));
-    typeSelect.value = state.type; insSelect.value = state.ins; areaSelect.value = state.area;
-    $('ages-select').value = state.ages; $('gender-select').value = state.gender;
+    MULTI_KEYS.forEach(k => multis[k].sync());
     document.querySelectorAll('#setting-segmented button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === state.setting)));
     $('mylist-btn').setAttribute('aria-pressed', String(state.mine));
   }
@@ -636,11 +700,6 @@ __DIRECTORY_META_JSON__
   document.querySelectorAll('.mini-toggle button').forEach(b => b.addEventListener('click', () => {
     state.match = b.dataset.match; syncControls(); update();
   }));
-  typeSelect.addEventListener('change', () => { state.type = typeSelect.value; update(); });
-  insSelect.addEventListener('change', () => { state.ins = insSelect.value; update(); });
-  areaSelect.addEventListener('change', () => { state.area = areaSelect.value; update(); });
-  $('ages-select').addEventListener('change', e => { state.ages = e.target.value; update(); });
-  $('gender-select').addEventListener('change', e => { state.gender = e.target.value; update(); });
   document.querySelectorAll('#setting-segmented button').forEach(b => b.addEventListener('click', () => {
     state.setting = b.dataset.value; syncControls(); update();
   }));
@@ -700,7 +759,7 @@ __DIRECTORY_META_JSON__
     if (!q) return true;
     const hay = [r.name, (r.cities||[]).join(' '), (r.regions||[]).join(' '), r.address,
       (r.concerns||[]).join(' '), (r.care||[]).join(' '), r.insurance, (r.insuranceCats||[]).join(' '),
-      r.providerType, r.ages, (r.agesBuckets||[]).join(' '), r.approaches].filter(Boolean).join(' ').toLowerCase();
+      (r.providerTypes || [r.providerType]).join(' '), r.ages, (r.agesBuckets||[]).join(' '), r.approaches].filter(Boolean).join(' ').toLowerCase();
     return q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
   }
   function matches(r){
@@ -711,20 +770,21 @@ __DIRECTORY_META_JSON__
       if (!ok) return false;
     }
     if (state.care.length && !state.care.some(c => (r.care||[]).includes(c))) return false;
-    if (state.type && r.providerType !== state.type) return false;
-    if (state.ins){
+    // Within one dropdown: match ANY selected option. Across dropdowns: match all.
+    if (state.type.length && !state.type.some(t => (r.providerTypes || [r.providerType]).includes(t))) return false;
+    if (state.ins.length){
       const cats = r.insuranceCats || [];
-      const viaMostPlans = META.commercial.includes(state.ins) && cats.includes(META.mostPlans);
-      if (!cats.includes(state.ins) && !viaMostPlans) return false;
+      const okIns = state.ins.some(i => cats.includes(i) || (META.commercial.includes(i) && cats.includes(META.mostPlans)));
+      if (!okIns) return false;
     }
-    if (state.area){
-      if (state.area.startsWith('r:') && !(r.regions||[]).includes(state.area.slice(2))) return false;
-      if (state.area.startsWith('c:') && !(r.cities||[]).includes(state.area.slice(2))) return false;
+    if (state.area.length){
+      const okArea = state.area.some(a => a.startsWith('r:') ? (r.regions||[]).includes(a.slice(2)) : (r.cities||[]).includes(a.slice(2)));
+      if (!okArea) return false;
     }
-    if (state.ages && !(r.agesBuckets||[]).includes(state.ages)) return false;
+    if (state.ages.length && !state.ages.some(a => (r.agesBuckets||[]).includes(a))) return false;
     if (state.setting === 'inperson' && !r.inPerson) return false;
     if (state.setting === 'virtual' && !r.virtual) return false;
-    if (state.gender && !(r.gender||[]).includes(state.gender)) return false;
+    if (state.gender.length && !state.gender.some(g => (r.gender||[]).includes(g))) return false;
     return matchesSearch(r, state.q);
   }
 
@@ -778,7 +838,7 @@ __DIRECTORY_META_JSON__
       <div class="card-head">
         <div>
           <h3>${esc(r.name)}</h3>
-          ${r.providerType ? `<span class="type-pill">${esc(r.providerType)}</span>` : ''}
+          ${(r.providerTypes || [r.providerType]).filter(Boolean).map(t => `<span class="type-pill">${esc(t)}</span>`).join(' ')}
         </div>
         <button type="button" class="save-btn" data-name="${esc(r.name)}" aria-pressed="${isSaved}" aria-label="${isSaved ? 'Remove' : 'Save'} ${esc(r.name)} ${isSaved ? 'from' : 'to'} my list">${icon.star} ${isSaved ? 'Saved' : 'Save'}</button>
       </div>
@@ -795,7 +855,7 @@ __DIRECTORY_META_JSON__
 
   function activeFilterCount(){
     return state.concerns.length + state.care.length +
-      ['type','ins','area','ages','gender'].filter(k => state[k]).length +
+      MULTI_KEYS.reduce((n, k) => n + state[k].length, 0) +
       (state.setting !== 'either' ? 1 : 0);
   }
 
@@ -805,7 +865,7 @@ __DIRECTORY_META_JSON__
     $('result-noun').textContent = list.length === 1 ? 'provider' : 'providers';
     $('result-scope').textContent = state.mine ? 'in my list' : 'match your filters';
     $('mylist-count').textContent = saved.size;
-    $('ins-hint').hidden = !state.ins;
+    $('ins-hint').hidden = !state.ins.length;
     const n = activeFilterCount();
     $('filters-toggle-label').textContent = n ? `Filters (${n} active)` : 'Filters';
     $('print-title').textContent = 'Woodward Academy Family Counseling Referral Directory. ' + (state.mine ? 'My saved list' : 'Search results') + ', printed ' + new Date().toLocaleDateString() + '.';
