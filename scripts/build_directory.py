@@ -74,6 +74,7 @@ SPECIALTY_MAP = {
     "Play Therapy": ["Play Therapy"],
     "IOP": ["Intensive Outpatient (IOP)"],
     "PHP": ["Partial Hospitalization (PHP)"],
+    "LGBTQ+ Affirming": ["LGBTQ+ Affirming"],
 }
 
 # Tags that describe the kind of care offered rather than the concern.
