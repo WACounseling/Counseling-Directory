@@ -423,6 +423,12 @@
   .dialog-body dd{margin:2px 0 0;}
   .dialog-lede{margin:0 0 4px;}
   .dialog-note{margin:18px 0 0; padding:10px 12px; background:var(--page); border-radius:8px; font-size:13.5px;}
+  .level{padding:12px 0; border-top:1px solid var(--line);}
+  .level:first-of-type{border-top:none;}
+  .level h3{margin:0 0 4px !important;}
+  .level p{margin:0 0 8px;}
+  .level .tool-btn{margin-top:2px;}
+  .dialog-urgent{margin:18px 0 0; padding:12px 14px; border-left:4px solid var(--maroon); background:var(--page); border-radius:8px;}
 
   footer{background:var(--ink); color:rgba(255,255,255,.78); padding:28px 24px 34px; font-size:13px; line-height:1.7;}
   footer .footer-cols{display:grid; grid-template-columns:1fr 1fr; gap:24px 48px; padding:0; max-width:1032px;}
@@ -524,6 +530,7 @@
     <h2>Find a clinician</h2>
     <p>Search by name, city, insurance, or keyword, or combine any of the filters below. Please verify credentials, availability, and insurance directly with each practice.</p>
     <p class="finder-links">
+      <button type="button" class="link-btn" data-open="levels-dialog">Not sure what kind of care?</button>
       <button type="button" class="link-btn" data-open="terms-dialog">What do these terms mean?</button>
       <button type="button" class="link-btn" data-open="questions-dialog">Questions to ask when you call</button>
     </p>
@@ -698,6 +705,47 @@
   </div>
 </dialog>
 
+<dialog class="info-dialog" id="levels-dialog" aria-labelledby="levels-title">
+  <div class="dialog-head">
+    <h2 id="levels-title">Not sure what kind of care is needed?</h2>
+    <button type="button" class="dialog-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="dialog-body">
+    <p class="dialog-lede">Your grade-level school counselor can help you sort this out. Here is a quick guide to the kinds of care in this directory, from least to most intensive. Each button shows matching providers and keeps any other filters you've chosen.</p>
+    <div class="level">
+      <h3>Weekly therapy (outpatient)</h3>
+      <p>A student meets with a therapist about once a week while going to school as usual. This is where most students start.</p>
+      <button type="button" class="tool-btn" data-level-type="Therapist|Psychologist">Show therapy providers</button>
+    </div>
+    <div class="level">
+      <h3>Medication management (psychiatry)</h3>
+      <p>A psychiatrist or psychiatric nurse practitioner evaluates whether medication could help, and follows up regularly. Often paired with therapy.</p>
+      <button type="button" class="tool-btn" data-level-care="Medication Management">Show medication management</button>
+    </div>
+    <div class="level">
+      <h3>Testing and evaluation</h3>
+      <p>A psychologist looks at learning, attention, or development, and writes a report with recommendations, often used for school accommodations.</p>
+      <button type="button" class="tool-btn" data-level-care="Psychoeducational Testing">Show testing providers</button>
+    </div>
+    <div class="level">
+      <h3>Intensive outpatient program (IOP)</h3>
+      <p>Several hours a day, a few days a week, usually after school. For students who need more support than weekly therapy.</p>
+      <button type="button" class="tool-btn" data-level-care="Intensive Outpatient (IOP)">Show IOP programs</button>
+    </div>
+    <div class="level">
+      <h3>Partial hospitalization (PHP)</h3>
+      <p>Most of the day, five days a week, while living at home. Students usually pause regular school.</p>
+      <button type="button" class="tool-btn" data-level-care="Partial Hospitalization (PHP)">Show PHP programs</button>
+    </div>
+    <div class="level">
+      <h3>Residential treatment</h3>
+      <p>A live-in program with care around the clock, usually lasting weeks to months.</p>
+      <button type="button" class="tool-btn" data-level-care="Residential Treatment">Show residential programs</button>
+    </div>
+    <p class="dialog-urgent"><strong>If your child is in danger right now,</strong> call or text <a href="tel:988"><strong>988</strong></a>, call <a href="tel:911"><strong>911</strong></a>, or go to the nearest emergency room.</p>
+  </div>
+</dialog>
+
 <footer>
   <div class="wrap footer-cols">
     <div class="footer-col">
@@ -707,7 +755,7 @@
     </div>
     <div class="footer-col">
       <h2 class="footer-head">About this directory</h2>
-      <p>Directory last checked for updates: <strong id="last-checked">November 15, 2026</strong></p>
+      <p>Directory last checked for updates: <strong id="last-checked">November 16, 2026</strong></p>
       <p>Questions, or know of a listing that's out of date? Contact your grade-level school counselor.</p>
       <p class="footer-dept">Woodward Academy Counseling Department</p>
     </div>
@@ -978,7 +1026,27 @@
     d.querySelector('.dialog-close').addEventListener('click', () => d.close ? d.close() : d.removeAttribute('open'));
     d.addEventListener('click', e => { if (e.target === d) d.close(); });
   });
-  const DIALOG_HASH = { '#questions': 'questions-dialog', '#terms': 'terms-dialog' };
+  const DIALOG_HASH = { '#questions': 'questions-dialog', '#terms': 'terms-dialog', '#levels': 'levels-dialog' };
+
+  // ---------- "Not sure what kind of care?" buttons ----------
+  // Each button swaps in one type of care (or provider type) and keeps the
+  // family's other filters. Buttons for care types with no providers are hidden.
+  const careOnSite = new Set(DATA.flatMap(r => r.care || []));
+  const typesOnSite = new Set(DATA.flatMap(r => r.providerTypes || [r.providerType]));
+  document.querySelectorAll('#levels-dialog [data-level-care], #levels-dialog [data-level-type]').forEach(b => {
+    const care = b.dataset.levelCare ? [b.dataset.levelCare] : [];
+    const types = b.dataset.levelType ? b.dataset.levelType.split('|').filter(t => typesOnSite.has(t)) : [];
+    if (care.length && !careOnSite.has(care[0])) { b.hidden = true; return; }
+    b.addEventListener('click', () => {
+      state.care = care;
+      state.type = types;
+      state.mine = false;
+      const d = $('levels-dialog');
+      if (d.close) d.close(); else d.removeAttribute('open');
+      syncControls(); update();
+      $('results-bar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
 
   // ---------- email my list ----------
   $('email-btn').addEventListener('click', async () => {
