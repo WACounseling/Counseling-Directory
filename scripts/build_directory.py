@@ -109,7 +109,12 @@ REGIONS = [
     ("Intown Atlanta", ["Atlanta", "Buckhead", "Midtown", "Poncey-Highland",
                         "Virginia-Highland", "Grant Park", "Kirkwood"]),
     ("South metro (near main campus)", ["College Park", "East Point", "Hapeville", "Fairburn",
-                                        "Fayetteville", "Peachtree City", "Newnan"]),
+                                        "Union City", "South Fulton", "Palmetto",
+                                        "Riverdale", "Forest Park", "Morrow", "Jonesboro",
+                                        "Stockbridge", "McDonough", "Hampton",
+                                        "Fayetteville", "Peachtree City", "Tyrone",
+                                        "Newnan", "Sharpsburg", "Senoia",
+                                        "Douglasville", "Lithia Springs"]),
     ("North Fulton", ["Sandy Springs", "Roswell", "Alpharetta", "Johns Creek", "Milton"]),
     ("DeKalb", ["Decatur", "Tucker", "Dunwoody", "Chamblee", "Brookhaven", "Scottdale"]),
     ("Cobb & Cherokee", ["Marietta", "Smyrna", "Kennesaw", "Woodstock", "Vinings"]),
@@ -377,6 +382,7 @@ CITY_ZIP_FALLBACK = {
     "sandy springs": "30328", "johns creek": "30097", "dunwoody": "30338", "milton": "30004",
     "brookhaven": "30319", "buckhead": "30305", "midtown": "30309", "virginia-highland": "30306",
     "poncey-highland": "30306", "grant park": "30312", "kirkwood": "30317", "vinings": "30339",
+    "south fulton": "30349",
 }
 ZIP_RE = re.compile(r"\b(\d{5})(?:-\d{4})?\b")
 LOCATION_ISSUES = []
