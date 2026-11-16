@@ -469,21 +469,52 @@
     html{scroll-behavior:auto;}
     *{transition:none !important;}
   }
+  .print-view{display:none;}
+  @page{
+    size:letter; margin:0.55in 0.6in 0.65in;
+    @bottom-center{content:"Page " counter(page) " of " counter(pages); font:9pt Arial, sans-serif; color:#666;}
+  }
   @media print{
-    body{background:var(--white);}
-    .site-header, .collab, .disclaimer, .finder-heading, .search-bar-wrap,
-    .filters, .filters-toggle, .toolbar, .reset-link, .save-btn, button.tag.more,
-    .crisis .crisis-more, footer, .toast, .search-row, .near-status, .sticky-bar,
-    .finder-links, .info-dialog, .term-def{display:none !important;}
-    .print-only{display:block;}
-    .crisis{background:none; color:var(--ink); border-bottom:1px solid var(--ink); padding:0 0 8px;}
-    .crisis a{color:var(--ink);}
-    .wrap{padding:0;}
-    .results{grid-template-columns:1fr 1fr; gap:10px;}
-    .card{box-shadow:none; break-inside:avoid; padding:12px; border-color:#999;}
-    .card.saved{box-shadow:none;}
-    .visit-btn{background:none !important; color:var(--ink) !important; padding:0; justify-content:flex-start;}
-    .visit-btn::after{content:" " attr(href); font-weight:400; font-size:11px;}
+    :root{color-scheme:light;}
+    html, body{background:#fff !important; color:#1C1C1C !important;}
+    body > *:not(main), main > *:not(#print-view){display:none !important;}
+    main.wrap{padding:0 !important; max-width:none !important; margin:0 !important;}
+    .print-view{display:block; font-family:'Public Sans', Arial, sans-serif; font-size:9.5pt; line-height:1.35; color:#1C1C1C;}
+    .print-view *{color:#1C1C1C;}
+    .pv-head{display:flex; align-items:center; gap:14px; padding-bottom:10px; border-bottom:2.5pt solid #9D2235;}
+    .pv-head img{height:0.6in; width:auto;}
+    .pv-head .pv-title{flex:1;}
+    .pv-head .pv-dept{font-size:9pt; letter-spacing:.04em; text-transform:uppercase; color:#9D2235 !important; font-weight:700;}
+    .pv-head h1{font-family:'Montserrat', Arial, sans-serif; font-size:17pt; margin:2px 0 0; color:#1C1C1C !important;}
+    .pv-head .pv-date{text-align:right; font-size:8.5pt; color:#555 !important; line-height:1.5;}
+    .pv-summary{margin:12px 0 8px; padding:9px 12px; border:1pt solid #CFCFCF; border-left:4pt solid #9D2235; border-radius:4pt;}
+    .pv-summary strong{font-size:11pt;}
+    .pv-summary p{margin:2px 0;}
+    .pv-crisis{margin:0 0 14px; font-size:9pt; padding:6px 10px; background:#F3F3F3; border-radius:4pt; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .pv-crisis b{color:#9D2235 !important;}
+    .pv-item{break-inside:avoid; page-break-inside:avoid; padding:8px 0 7px; border-top:0.75pt solid #CFCFCF;}
+    .pv-item:first-of-type{border-top:none;}
+    .pv-name{display:flex; justify-content:space-between; align-items:baseline; gap:12px;}
+    .pv-name h2{font-family:'Montserrat', Arial, sans-serif; font-size:12pt; margin:0;}
+    .pv-num{color:#9D2235 !important; margin-right:4px;}
+    .pv-type{font-size:8.5pt; text-transform:uppercase; letter-spacing:.05em; color:#9D2235 !important; font-weight:700; white-space:nowrap;}
+    .pv-grid{display:grid; grid-template-columns:1fr 1fr; gap:2px 22px; margin-top:5px;}
+    .pv-grid p{margin:0;}
+    .pv-label{font-weight:700;}
+    .pv-phone{font-size:11pt; font-weight:700;}
+    .pv-line{margin:3px 0 0;}
+    .pv-small{font-size:9pt; color:#444 !important;}
+    .pv-track{margin-top:5px; font-size:8.5pt; color:#555 !important; display:flex; gap:14px; align-items:baseline;}
+    .pv-track > span{white-space:nowrap;}
+    .pv-track > span.pv-notes{flex:1; display:flex; align-items:baseline;}
+    .pv-blank{display:inline-block; border-bottom:0.75pt solid #999; width:0.75in; margin-left:4px;}
+    .pv-blank.wide{flex:1; width:auto;}
+    .pv-end{break-inside:avoid; page-break-inside:avoid; margin-top:16px; padding-top:12px; border-top:2.5pt solid #9D2235;}
+    .pv-end h2{font-family:'Montserrat', Arial, sans-serif; font-size:12pt; margin:0 0 4px; color:#9D2235 !important;}
+    .pv-end ul{margin:4px 0 10px; padding-left:18px;}
+    .pv-end li{margin-bottom:2px;}
+    .pv-end .pv-small{margin:6px 0 0;}
+    .pv-empty{margin-top:20px; font-size:11pt;}
   }
 </style>
 </head>
@@ -650,6 +681,7 @@
 
   <p class="print-only" id="print-title"></p>
   <div class="results" id="results"></div>
+  <div class="print-view" id="print-view" aria-hidden="true"></div>
 </main>
 
 <div class="sticky-bar" id="sticky-bar" aria-hidden="true">
@@ -951,7 +983,103 @@ __DIRECTORY_META_JSON__
     try { await navigator.clipboard.writeText(url); toast('Link copied'); }
     catch(e){ window.prompt('Copy this link:', url); }
   });
-  $('print-btn').addEventListener('click', () => window.print());
+  // ---------- print view ----------
+  // A clean, paper-friendly version of the current results, built just before
+  // printing (Print button or the browser's own Print command).
+  function shortUrl(u){
+    if (!u) return '';
+    return u.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/[?#].*$/, '').replace(/\/$/, '');
+  }
+  function filterSummary(){
+    const parts = [];
+    const areaText = v => v.replace(/^[rc]:/, '');
+    if (state.q) parts.push(`Search: \u201c${state.q}\u201d`);
+    if (state.concerns.length) parts.push(`Concerns (${state.match === 'any' ? 'any of' : 'all of'}): ${state.concerns.join(', ')}`);
+    if (state.care.length) parts.push(`Type of care: ${state.care.join(', ')}`);
+    if (state.type.length) parts.push(`Provider type: ${state.type.join(', ')}`);
+    if (state.ins.length) parts.push(`Insurance or payment: ${state.ins.join(', ')}`);
+    if (state.area.length) parts.push(`Area: ${state.area.map(areaText).join(', ')}`);
+    if (state.ages.length) parts.push(`Ages: ${state.ages.join(', ')}`);
+    if (state.setting !== 'either') parts.push(`Setting: ${state.setting === 'inperson' ? 'In person' : 'Virtual'}`);
+    if (state.gender.length) parts.push(`Clinician gender: ${state.gender.join(', ')}`);
+    if (nearPoint()) parts.push(`Nearest to ZIP ${state.near}${state.within ? `, within ${state.within} miles` : ''}`);
+    return parts;
+  }
+  function buildPrintView(){
+    const list = window.__printList || [];
+    const today = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    const site = location.origin + location.pathname;
+    const filters = filterSummary();
+    const heading = state.mine
+      ? `My saved list: ${list.length} provider${list.length === 1 ? '' : 's'}`
+      : `${list.length} provider${list.length === 1 ? '' : 's'} ${filters.length ? 'matching your search' : 'in the directory'}`;
+    const summary = `<div class="pv-summary"><strong>${esc(heading)}</strong>` +
+      (!state.mine && filters.length ? `<p>${filters.map(esc).join(' &nbsp;\u00b7&nbsp; ')}</p>` : '') +
+      `<p class="pv-small">Insurance, fees, and availability change often. Please confirm directly with each provider.</p></div>`;
+
+    const items = list.map((r, i) => {
+      const types = (r.providerTypes || [r.providerType]).filter(Boolean).join(' \u00b7 ');
+      const d = distanceTo(r);
+      const dist = d == null ? '' : ` (${d < 1 ? 'under 1 mile' : 'about ' + Math.round(d) + ' miles'} away${r.locApprox ? ', estimated' : ''})`;
+      const where = r.address || (r.cities || []).join(', ') || 'Address not listed';
+      const setting = (!r.inPerson && !r.virtual) ? 'Ask the practice' : r.inPerson && r.virtual ? 'In person and virtual' : r.inPerson ? 'In person only' : 'Virtual only';
+      const left = [
+        r.phone ? `<p class="pv-phone">${esc(r.phone.replace(/\s*\n\s*/g, ' \u00b7 '))}</p>` : `<p>No phone listed</p>`,
+        r.website ? `<p>${esc(shortUrl(r.website))}</p>` : '',
+        `<p>${esc(where)}${esc(dist)}</p>`
+      ].join('');
+      const right = [
+        r.ages ? `<p><span class="pv-label">Ages:</span> ${esc(r.ages)}</p>` : '',
+        `<p><span class="pv-label">Setting:</span> ${esc(setting)}</p>`,
+        (r.gender || []).length ? `<p><span class="pv-label">Clinicians:</span> ${esc(r.gender.join(', '))}</p>` : '',
+        `<p><span class="pv-label">Insurance and payment:</span> ${esc(r.insurance || 'Not listed. Call to ask about your plan.')}</p>`
+      ].join('');
+      const lines = [];
+      if ((r.care || []).length) lines.push(`<p class="pv-line"><span class="pv-label">Services:</span> ${esc(r.care.join(', '))}</p>`);
+      if ((r.concerns || []).length) lines.push(`<p class="pv-line"><span class="pv-label">Helps with:</span> ${esc(r.concerns.join(', '))}</p>`);
+      if (r.approaches) lines.push(`<p class="pv-line pv-small"><span class="pv-label">Approaches:</span> ${esc(r.approaches)}</p>`);
+      return `<div class="pv-item">
+        <div class="pv-name"><h2><span class="pv-num">${i + 1}.</span>${esc(r.displayName || r.name)}</h2><span class="pv-type">${esc(types)}</span></div>
+        <div class="pv-grid"><div>${left}</div><div>${right}</div></div>
+        ${lines.join('')}
+        <div class="pv-track"><span>&#9744; Called <span class="pv-blank"></span></span><span>&#9744; Left message</span><span>&#9744; Appt. <span class="pv-blank"></span></span><span class="pv-notes">Notes <span class="pv-blank wide"></span></span></div>
+      </div>`;
+    }).join('');
+
+    $('print-view').innerHTML = `
+      <div class="pv-head">
+        <img src="assets/wa-logo-maroon.png" alt="Woodward Academy">
+        <div class="pv-title"><div class="pv-dept">Woodward Academy Counseling Department</div><h1>Family Counseling Referral Directory</h1></div>
+        <div class="pv-date">Printed ${esc(today)}<br>${esc(site.replace(/^https?:\/\//, ''))}</div>
+      </div>
+      ${summary}
+      <div class="pv-crisis"><b>Need help now?</b> In an emergency, call 911. Call or text 988 for the Suicide &amp; Crisis Lifeline. Georgia Crisis &amp; Access Line: 1-800-715-4225.</div>
+      ${items || '<p class="pv-empty">No providers match these filters.</p>'}
+      <div class="pv-end">
+        <h2>Before you call</h2>
+        <p>Have your insurance card, your student\u2019s age and grade, and a sentence or two about what\u2019s going on. Helpful questions to ask:</p>
+        <ul>
+          <li>Are you accepting new clients? How soon is the first appointment?</li>
+          <li>Do you often work with students this age and with concerns like ours?</li>
+          <li>Are you in network with our plan? If not, do you provide a superbill? What is the fee?</li>
+          <li>Do you offer in-person visits, virtual visits, or both? After-school times?</li>
+          <li>How do you involve parents, and will you coordinate with our school counselor if we give permission?</li>
+        </ul>
+        <p>It\u2019s okay if the first provider you call isn\u2019t the right fit. Your grade-level school counselor can help you think through options.</p>
+        <p class="pv-small">Woodward Academy does not formally endorse, employ, or supervise the providers listed. This list is a starting point, not a specific recommendation, and may not reflect current availability, credentials, or insurance.</p>
+      </div>`;
+  }
+  window.addEventListener('beforeprint', buildPrintView);
+  $('print-btn').addEventListener('click', () => {
+    const n = (window.__printList || []).length;
+    if (n > 25 && !state.mine){
+      const pages = Math.ceil(n / 4);
+      const msg = `This will print ${n} providers (about ${pages} pages).\n\nTo print fewer, narrow your filters or select Save on the providers you want and print "My list".\n\nPrint all ${n} anyway?`;
+      if (!window.confirm(msg)) return;
+    }
+    buildPrintView();
+    window.print();
+  });
 
   // ---------- near me ----------
   const nearPoint = () => (state.near && META.zips[state.near]) || null;
@@ -1304,6 +1432,7 @@ __DIRECTORY_META_JSON__
     $('filters-toggle-label').textContent = n ? `Filters (${n} active)` : 'Filters';
     $('print-title').textContent = 'Woodward Academy Family Counseling Referral Directory. ' + (state.mine ? 'My saved list' : 'Search results') + ', printed ' + new Date().toLocaleDateString() + '.';
 
+    window.__printList = list;
     const container = $('results');
     if (!list.length){
       container.innerHTML = state.mine && !saved.size
