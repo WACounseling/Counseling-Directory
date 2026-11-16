@@ -1,37 +1,25 @@
 #!/usr/bin/env python3
 """
-Weekly broken-link check for the Counseling Directory.
+Weekly check of every provider website in data/directory.csv.
 
-Visits every provider website in data/directory.csv and writes a report to the
-GitHub Actions run summary:
-  - Broken: the page or the whole site is gone (404/410, or the web address
-    no longer exists). The run fails when any are found, so GitHub emails you.
-  - Couldn't confirm: the site blocked the automated check, timed out, or had
-    a temporary error. Usually fine; worth a quick look if it repeats.
-  - Moved to a different website: the link now forwards somewhere else.
-
-Usage: python3 scripts/check_links.py
-Uses only Python's standard library.
+Writes a report to the GitHub Actions run summary. The run is marked as
+failed (so GitHub emails the repo owner) only when at least one link is
+clearly broken: page not found, site gone, or the domain no longer exists.
+Sites that block automated checks (403/429) or time out are listed as
+"couldn't verify" but don't fail the run.
 """
 import csv
 import os
-import socket
-import ssl
 import sys
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from urllib.parse import urlparse
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CSV_PATH = Path(os.environ.get("LINKS_CSV", REPO_ROOT / "data" / "directory.csv"))
+CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "directory.csv"
 TIMEOUT = 20
-HEADERS = {
-    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
-    "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-}
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; WA-Directory-LinkCheck/1.0)"}
+BROKEN_CODES = {404, 410}
 
 
 def normalize(url):
@@ -43,48 +31,34 @@ def normalize(url):
     return url
 
 
-def base_domain(url):
-    host = (urlparse(url).hostname or "").lower()
-    return host[4:] if host.startswith("www.") else host
-
-
-def fetch(url, method):
-    req = urllib.request.Request(url, headers=HEADERS, method=method)
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-        return resp.status, resp.geturl()
-
-
 def check(url):
-    """Returns (status, detail, final_url). status: ok | broken | unsure."""
-    last_error = None
+    """Return (status, detail) where status is ok / broken / unverified."""
     for method in ("HEAD", "GET"):
         try:
-            code, final = fetch(url, method)
-            return "ok", str(code), final
+            req = urllib.request.Request(url, headers=HEADERS, method=method)
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                return "ok", str(resp.status)
         except urllib.error.HTTPError as e:
-            if e.code in (404, 410):
-                if method == "HEAD":
-                    last_error = ("broken", f"Page not found ({e.code})")
-                    continue  # some servers answer HEAD wrongly; confirm with GET
-                return "broken", f"Page not found ({e.code})", None
-            last_error = ("unsure", f"Site returned error {e.code}")
+            if method == "HEAD" and e.code in (403, 405, 429, 501):
+                continue  # some servers reject HEAD; retry with GET
+            if e.code in BROKEN_CODES:
+                return "broken", f"HTTP {e.code} (page not found)"
+            if e.code in (401, 403, 429):
+                return "unverified", f"HTTP {e.code} (site blocks automated checks)"
+            if e.code >= 500:
+                return "unverified", f"HTTP {e.code} (site error, may be temporary)"
+            return "unverified", f"HTTP {e.code}"
         except urllib.error.URLError as e:
-            reason = e.reason
-            if isinstance(reason, socket.gaierror):
-                return "broken", "Web address no longer exists (domain not found)", None
-            if isinstance(reason, ConnectionRefusedError):
-                last_error = ("broken", "Site refused the connection")
-            elif isinstance(reason, (ssl.SSLError, ssl.CertificateError)):
-                last_error = ("unsure", "Security certificate problem")
-            elif isinstance(reason, (socket.timeout, TimeoutError)):
-                last_error = ("unsure", "Timed out")
-            else:
-                last_error = ("unsure", f"Couldn't connect ({reason})")
-        except (socket.timeout, TimeoutError):
-            last_error = ("unsure", "Timed out")
-        except Exception as e:  # anything unexpected is reported, never crashes the run
-            last_error = ("unsure", f"Unexpected error ({type(e).__name__})")
-    return last_error[0], last_error[1], None
+            reason = str(e.reason)
+            if "Name or service not known" in reason or "nodename nor servname" in reason \
+                    or "No address associated" in reason or "getaddrinfo failed" in reason:
+                return "broken", "Domain no longer exists"
+            if "CERTIFICATE" in reason.upper() or "SSL" in reason.upper():
+                return "unverified", "Security certificate problem"
+            return "unverified", f"Could not connect ({reason[:60]})"
+        except Exception as e:  # timeouts and anything unexpected
+            return "unverified", f"{type(e).__name__}"
+    return "unverified", "No response"
 
 
 def main():
@@ -98,42 +72,32 @@ def main():
             targets.append((name, url))
 
     with ThreadPoolExecutor(max_workers=8) as pool:
-        results = list(pool.map(lambda t: (t[0], t[1]) + check(t[1]), targets))
+        results = list(pool.map(lambda t: (t[0], t[1], *check(t[1])), targets))
 
     broken = [r for r in results if r[2] == "broken"]
-    unsure = [r for r in results if r[2] == "unsure"]
-    moved = [r for r in results if r[2] == "ok" and r[4] and base_domain(r[4]) != base_domain(r[1])]
+    unverified = [r for r in results if r[2] == "unverified"]
+    ok = len(results) - len(broken) - len(unverified)
 
-    lines = ["## Weekly website check", "",
-             f"Checked **{len(results)}** provider websites. "
-             f"{len(broken)} broken, {len(unsure)} couldn't be confirmed, {len(moved)} moved.", ""]
-
-    def section(title, note, items):
-        if not items:
-            return
-        lines.extend([f"### {title} ({len(items)})", note, ""])
-        lines.extend(items)
+    lines = ["## Provider website check", "",
+             f"Checked {len(results)} websites: {ok} working, {len(broken)} broken, "
+             f"{len(unverified)} couldn't verify.", ""]
+    if broken:
+        lines += ["### Broken (fix in the sheet)", "", "| Provider | Website | Problem |", "|---|---|---|"]
+        lines += [f"| {n} | {u} | {d} |" for n, u, _, d in sorted(broken)]
         lines.append("")
-
-    section("Broken", "Update or remove these in the sheet.",
-            [f"- **{n}**: {d}. Listed as {u}" for n, u, s, d, f in broken])
-    section("Moved to a different website", "Check that the new site is still the same provider, then update the sheet.",
-            [f"- **{n}**: {u} now goes to {f}" for n, u, s, d, f in moved])
-    section("Couldn't confirm", "Many sites block automated checks, so these are often fine. "
-            "Open them yourself if one shows up several weeks in a row.",
-            [f"- {n}: {d}. {u}" for n, u, s, d, f in unsure])
-    if not (broken or moved or unsure):
-        lines.append("Every website responded normally.")
-
+    if unverified:
+        lines += ["### Couldn't verify (open these by hand if they keep showing up)", "",
+                  "| Provider | Website | Note |", "|---|---|---|"]
+        lines += [f"| {n} | {u} | {d} |" for n, u, _, d in sorted(unverified)]
+        lines.append("")
     report = "\n".join(lines)
     print(report)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as s:
             s.write(report + "\n")
-
     if broken:
-        print(f"::error::{len(broken)} provider website(s) appear broken. See the run summary for the list.")
+        print(f"::error::{len(broken)} provider website(s) appear broken. See the run summary.")
         sys.exit(1)
 
 
