@@ -80,6 +80,7 @@ SPECIALTY_MAP = {
 # Tags that describe the kind of care offered rather than the concern.
 # These go in the "Type of care" filter; everything else is a concern.
 FREE_LINE_TAG = "Free Crisis or Support Line"
+DO_NOT_REFER_RE = re.compile(r"do\s*not\s*refer", re.I)
 CARE_TAGS = {
     "Psychoeducational Testing",
     "Medication Management",
@@ -581,50 +582,12 @@ def main():
     if PLACES_PATH.exists():
         PLACES.update(json.loads(PLACES_PATH.read_text(encoding="utf-8")))
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    records = [r for r in (build_record(row) for row in rows) if r]
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames
+        rows = list(reader)
 
-    prev = previous_count()
-    report = quality_report(records, prev)
-    print(report)
-    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary_path:
-        with open(summary_path, "a", encoding="utf-8") as s:
-            s.write(report + "\n")
-
-    allow_shrink = os.environ.get("ALLOW_SHRINK", "").lower() == "true"
-    if prev and not allow_shrink:
-        drop = prev - len(records)
-        if drop > max(SHRINK_LIMIT_MIN, prev * SHRINK_LIMIT_PCT):
-            msg = (f"Provider count dropped from {prev} to {len(records)}. The site was NOT updated. "
-                   "If this is intentional, run the workflow manually with "
-                   "'Allow a large drop in providers' checked.")
-            print(f"::error::{msg}")
-            sys.exit(1)
-
-    for r in records:
-        r.pop("_insuranceRaw", None)
-
-    template = TEMPLATE_PATH.read_text(encoding="utf-8")
-    # "</" is escaped so no provider text can ever close the <script> tag early.
-    data_json = json.dumps(records, ensure_ascii=False).replace("</", "<\\/")
-    meta_json = json.dumps({
-        "regions": [r for r, _ in REGIONS] + [OTHER_REGION],
-        "insurance": [l for l, _ in INSURANCE_CATEGORIES] + [MOST_PLANS_LABEL],
-        "commercial": sorted(COMMERCIAL),
-        "mostPlans": MOST_PLANS_LABEL,
-        "freeLineTag": FREE_LINE_TAG,
-        "zips": PLACES["zips"],
-        "cityRegion": {c: CITY_TO_REGION.get(c.lower(), OTHER_REGION)
-                       for r in records for c in r["cities"]},
-    }, ensure_ascii=False)
-    output = template.replace("__DIRECTORY_DATA_JSON__", data_json)
-    output = output.replace("__DIRECTORY_META_JSON__", meta_json)
-    output = output.replace("__LAST_CHECKED__", html.escape(fallback_checked_date()))
-
-    OUTPUT_PATH.write_text(output, encoding="utf-8")
-    print(f"Wrote {OUTPUT_PATH} with {len(records)} providers.")
-
-
-if __name__ == "__main__":
-    main()
+    # Safety net: never publish a provider tagged DO NOT REFER, even if the
+    # sheet's filter misses it. Removed rows are also stripped from the CSV
+    # that gets committed to the (public) repo. Names are never printed,
+    # because the Actions log and run summary are publicly visible.
+    blocked = [row for
